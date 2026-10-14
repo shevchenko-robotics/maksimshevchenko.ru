@@ -8,6 +8,7 @@
 <meta property="og:title" content="Максим Шевченко">
 <meta property="og:description" content="Инженер-робототехник и преподаватель">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://maksimshevchenko.ru/photo.jpg">
 <meta property="og:url" content="https://maksimshevchenko.ru/">
 <link rel="canonical" href="https://maksimshevchenko.ru/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231B2430'/%3E%3Cpath d='M16 50 L28 30 L44 22' stroke='%23F2B705' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='16' cy='50' r='5' fill='%23fff'/%3E%3Ccircle cx='28' cy='30' r='5' fill='%23fff'/%3E%3C/svg%3E">
@@ -67,6 +68,8 @@ h1 span{display:block}
 /* sections */
 section{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px 48px;padding:56px 0;border-top:1px solid var(--rule)}
 h2{font-size:22px;font-weight:650;letter-spacing:-.01em;margin:0;line-height:1.3}
+.side{display:flex;flex-direction:column;gap:24px}
+.portrait{width:100%;max-width:240px;height:auto;border-radius:16px;display:block;background:var(--panel)}
 .prose p{margin:0 0 1em;max-width:62ch}
 .prose p:last-child{margin-bottom:0}
 
@@ -84,9 +87,6 @@ h2{font-size:22px;font-weight:650;letter-spacing:-.01em;margin:0;line-height:1.3
 .kit ul{list-style:none;margin:0;padding:0;color:var(--steel)}
 .kit li{padding:2px 0}
 
-.projects{display:grid;gap:22px}
-.projects a{font-weight:650;font-size:19px}
-.projects p{margin:2px 0 0;color:var(--steel);max-width:58ch}
 
 .contact-big{font-size:clamp(28px,4.4vw,46px);font-weight:700;letter-spacing:-.025em;line-height:1.1;margin:0 0 18px}
 .contact-big a{color:var(--ink);text-decoration-thickness:2px}
@@ -102,6 +102,7 @@ html[lang="en"] [data-en]{display:revert!important}
   .hero{grid-template-columns:1fr;gap:28px;padding-bottom:48px}
   .cell{max-height:none}
   section{grid-template-columns:1fr;gap:20px;padding:44px 0}
+  .portrait{max-width:280px}
   .kit{grid-template-columns:1fr 1fr}
 }
 @media (max-width:520px){
@@ -132,7 +133,7 @@ html[lang="en"] [data-en]{display:revert!important}
       <div class="links">
         <a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>
         <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">GitHub</a>
-        <!-- EMAIL: <a href="mailto:...">...</a> -->
+        <a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
       </div>
     </div>
 
@@ -164,7 +165,10 @@ html[lang="en"] [data-en]{display:revert!important}
   </div>
 
   <section>
-    <h2><span data-ru>Обо мне</span><span data-en>About</span></h2>
+    <div class="side">
+      <h2><span data-ru>Обо мне</span><span data-en>About</span></h2>
+      <img class="portrait" src="photo.jpg" width="800" height="999" alt="" loading="lazy">
+    </div>
     <div class="prose">
       <div data-ru>
         <p>Больше одиннадцати лет занимаюсь робототехникой. Начинал в&nbsp;РКК «Энергия» с&nbsp;исследований и&nbsp;разработок в&nbsp;космической робототехнике, потом перешёл в&nbsp;университеты.</p>
@@ -223,30 +227,15 @@ html[lang="en"] [data-en]{display:revert!important}
     </div>
   </section>
 
-  <section>
-    <h2><span data-ru>Проекты</span><span data-en>Projects</span></h2>
-    <div class="projects">
-      <div>
-        <a href="https://github.com/shevchenko-robotics/abbr-gost-word" target="_blank" rel="noopener">abbr-gost-word</a>
-        <p data-ru>Надстройка для Word: находит сокращения в&nbsp;тексте и&nbsp;проверяет их по&nbsp;ГОСТ.</p>
-        <p data-en>A Word add-in that finds abbreviations in a document and checks them against Russian GOST standards.</p>
-      </div>
-      <div>
-        <a href="https://github.com/vkr-robotics" target="_blank" rel="noopener">vkr-robotics</a>
-        <p data-ru>Выпускные работы моих студентов по&nbsp;робототехнике и&nbsp;шаблон репозитория для них.</p>
-        <p data-en>My students’ graduation projects in robotics and a repository template for them.</p>
-      </div>
-    </div>
-  </section>
 
   <section id="contact">
     <h2><span data-ru>Связаться</span><span data-en>Contact</span></h2>
     <div>
       <p class="contact-big"><a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">@m_shevchenko</a></p>
       <div class="contact-list">
-        <span data-ru>Быстрее всего — в&nbsp;Telegram.</span><span data-en>Telegram is the fastest way to reach me.</span>
+        <span data-ru>Быстрее всего — в&nbsp;Telegram, или&nbsp;напишите на&nbsp;почту:</span><span data-en>Telegram is fastest, or send an email:</span>
+        <a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
         <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">github.com/shevchenko-robotics</a>
-        <!-- EMAIL -->
       </div>
     </div>
   </section>
