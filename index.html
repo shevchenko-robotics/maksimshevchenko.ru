@@ -88,6 +88,12 @@ h2{font-size:22px;font-weight:650;letter-spacing:-.01em;margin:0;line-height:1.3
 .portrait{width:100%;max-width:240px;height:auto;border-radius:16px;display:block;background:var(--panel)}
 .prose p{margin:0 0 1em;max-width:62ch}
 .prose p:last-child{margin-bottom:0}
+.interests{margin:0 0 1em;padding-left:1.1em;max-width:62ch}
+.interests li{padding:2px 0}
+.interests li::marker{color:var(--steel)}
+.mentions{list-style:none;margin:0;padding:0;display:grid;gap:20px;max-width:64ch}
+.mentions a{color:var(--ink);font-weight:550}
+.mentions .src{display:block;color:var(--steel);font-size:15px;margin-top:2px}
 
 .chain{list-style:none;margin:0;padding:0;position:relative}
 .chain::before{content:"";position:absolute;left:7px;top:12px;bottom:12px;width:2px;background:var(--rule)}
@@ -212,13 +218,13 @@ html[lang="en"] [data-en]{display:revert!important}
     <div class="prose">
       <div data-ru>
         <p>Больше одиннадцати лет занимаюсь робототехникой. Начинал в&nbsp;РКК «Энергия» с&nbsp;исследований и&nbsp;разработок в&nbsp;космической робототехнике, потом перешёл в&nbsp;университеты.</p>
-        <p>Сейчас преподаю в&nbsp;МГТУ «СТАНКИН» и&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана, веду студенческие проекты и&nbsp;курс по&nbsp;промышленным роботам на&nbsp;английском языке для зарубежных студентов. Пишу программы повышения квалификации для инженеров и&nbsp;снял видеокурс по&nbsp;промышленной робототехнике.</p>
-        <p>Мне интересно, где робот встречается с&nbsp;реальной задачей: манипулятор в&nbsp;цехе, мобильная платформа, которая сама находит дорогу, и&nbsp;выпускник, который может сразу работать с&nbsp;настоящим оборудованием.</p>
+        <p>Сейчас преподаю в&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана и&nbsp;МГТУ «СТАНКИН», веду студенческие проекты, а&nbsp;за&nbsp;рубежом — курс по&nbsp;промышленным роботам на&nbsp;английском языке. Пишу программы повышения квалификации для инженеров и&nbsp;снял видеокурс по&nbsp;промышленной робототехнике.</p>
+        <p>Мне интересно, где робот встречается с&nbsp;реальной задачей: манипулятор в&nbsp;цехе или мобильная платформа, которая сама находит дорогу. А&nbsp;в&nbsp;преподавании для меня главное, чтобы мои студенты после выпуска сразу могли работать с&nbsp;настоящим оборудованием.</p>
       </div>
       <div data-en>
         <p>I have worked in robotics for more than eleven years. I started at RSC Energia doing R&amp;D in space robotics, then moved into universities.</p>
-        <p>Today I teach at Moscow State University of Technology “STANKIN” and Bauman Moscow State Technical University, supervise student projects, and teach an English-language course on industrial robots for international students. I also write professional training programs for engineers and have recorded a video course on industrial robotics.</p>
-        <p>What interests me is where a robot meets a real task: an arm on the shop floor, a mobile platform that finds its own way, and a graduate who can work with real equipment from day one.</p>
+        <p>Today I teach at Bauman Moscow State Technical University and Moscow State University of Technology “STANKIN”, supervise student projects, and teach an English-language course on industrial robots abroad. I also write professional training programs for engineers and have recorded a video course on industrial robotics.</p>
+        <p>What interests me is where a robot meets a real task: an arm on the shop floor or a mobile platform that finds its own way. In teaching, what matters most to me is that my students can work with real equipment as soon as they graduate.</p>
       </div>
     </div>
   </section>
@@ -267,6 +273,50 @@ html[lang="en"] [data-en]{display:revert!important}
     </div>
   </section>
 
+
+  <section id="students">
+    <h2><span data-ru>Студентам и&nbsp;дипломникам</span><span data-en>For students</span></h2>
+    <div class="prose">
+      <div data-ru>
+        <p>Руковожу выпускными работами студентов. Сейчас мне ближе всего такие темы:</p>
+        <ul class="interests">
+          <li>компьютерное зрение и&nbsp;нейросети для слежения за&nbsp;движущимися объектами;</li>
+          <li>системы управления поворотными и&nbsp;следящими устройствами;</li>
+          <li>промышленные и&nbsp;коллаборативные роботы: программирование, роботизированные ячейки, моделирование;</li>
+          <li>мобильные роботы на&nbsp;ROS&nbsp;2: навигация, локализация, симуляция;</li>
+          <li>космическая робототехника.</li>
+        </ul>
+        <p>С&nbsp;каждым дипломником встречаемся раз в&nbsp;неделю. Все материалы работы студент ведёт в&nbsp;репозитории на&nbsp;GitHub по&nbsp;<a href="https://github.com/shevchenko-robotics/diploma-template" target="_blank" rel="noopener">шаблону</a>, готовые работы собраны в&nbsp;<a href="https://github.com/vkr-robotics" target="_blank" rel="noopener">vkr-robotics</a>.</p>
+        <p>Если хотите писать диплом со&nbsp;мной, напишите в&nbsp;<a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>: кто вы, где учитесь и&nbsp;какая тема вам интересна. Свою тему тоже можно предложить.</p>
+      </div>
+      <div data-en>
+        <p>I supervise student theses. These are the topics I am most interested in right now:</p>
+        <ul class="interests">
+          <li>computer vision and neural networks for tracking moving objects;</li>
+          <li>control systems for pan-tilt and tracking devices;</li>
+          <li>industrial and collaborative robots: programming, robotic cells, simulation;</li>
+          <li>mobile robots on ROS&nbsp;2: navigation, localization, simulation;</li>
+          <li>space robotics.</li>
+        </ul>
+        <p>I meet each thesis student once a week. Students keep all their work in a GitHub repository based on a <a href="https://github.com/shevchenko-robotics/diploma-template" target="_blank" rel="noopener">template</a>; finished projects are collected in <a href="https://github.com/vkr-robotics" target="_blank" rel="noopener">vkr-robotics</a>.</p>
+        <p>If you would like to do your thesis with me, message me on <a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>: who you are, where you study, and what topic interests you. You can also propose your own.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="mentions">
+    <h2><span data-ru>Упоминания</span><span data-en>Mentions</span></h2>
+    <ul class="mentions">
+      <li>
+        <a href="https://t.me/msutstankin/10004" target="_blank" rel="noopener"><span data-ru>Рассказал о&nbsp;работе Молодёжного проектного центра СТАНКИНа на&nbsp;форуме студенческих конструкторских бюро в&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана</span><span data-en>Presented STANKIN’s Youth Project Center at the student design bureaus forum at Bauman University</span></a>
+        <span class="src"><span data-ru>Telegram-канал МГТУ «СТАНКИН»</span><span data-en>STANKIN Telegram channel</span></span>
+      </li>
+      <li>
+        <a href="https://dpo.stankin.ru/programs/robots/" target="_blank" rel="noopener"><span data-ru>Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и&nbsp;применение»</span><span data-en>Author of the professional training program “Industrial Manipulator Robots: Modern Technologies and Applications”</span></a>
+        <span class="src"><span data-ru>Сайт ДПО МГТУ «СТАНКИН»</span><span data-en>STANKIN professional education site</span></span>
+      </li>
+    </ul>
+  </section>
 
   <section id="contact">
     <h2><span data-ru>Связаться</span><span data-en>Contact</span></h2>
