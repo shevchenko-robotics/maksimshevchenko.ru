@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Максим Шевченко</title>
+<meta name="description" content="Инженер-робототехник и преподаватель. Космическая, промышленная и мобильная робототехника, инженерное образование.">
+<meta property="og:title" content="Максим Шевченко">
+<meta property="og:description" content="Инженер-робототехник и преподаватель">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://maksimshevchenko.ru/">
+<link rel="canonical" href="https://maksimshevchenko.ru/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231B2430'/%3E%3Cpath d='M16 50 L28 30 L44 22' stroke='%23F2B705' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='16' cy='50' r='5' fill='%23fff'/%3E%3Ccircle cx='28' cy='30' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");
+  unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(fonts/onest-latin-wght-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+:root{
+  --bg:#E9ECEF;       /* anodized aluminium */
+  --panel:#DDE2E6;
+  --ink:#1B2430;      /* graphite navy */
+  --steel:#66737F;
+  --rule:#C3CBD2;
+  --safety:#F2B705;   /* industrial safety yellow, used only for joints and focus */
+  --link:#1F4E79;
+  --font:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#161B21; --panel:#1E252D; --ink:#E4E8EC; --steel:#94A1AD; --rule:#2E3741; --link:#9CC3EA;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.62 var(--font);font-feature-settings:"tnum" 0}
+a{color:var(--link);text-underline-offset:.18em;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--safety);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+header .who{font-weight:600;color:var(--ink);text-decoration:none;font-size:16px}
+.lang{display:flex;gap:2px;font-size:15px}
+.lang button{font:inherit;cursor:pointer;background:none;border:0;color:var(--steel);padding:4px 8px;border-radius:6px}
+.lang button[aria-pressed="true"]{color:var(--ink);font-weight:650;background:var(--panel)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:end;padding:24px 0 64px}
+h1{font-weight:760;font-size:clamp(52px,8vw,104px);line-height:.9;letter-spacing:-.045em;margin:0 0 32px}
+h1 span{display:block}
+.intro{font-size:clamp(19px,2vw,22px);line-height:1.5;max-width:30ch;margin:0 0 32px;color:var(--ink)}
+.links{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:17px;font-weight:550}
+.links a{color:var(--ink)}
+
+.cell{position:relative;background:var(--panel);border-radius:20px;aspect-ratio:1/1;max-height:560px;width:100%;overflow:hidden;touch-action:none;cursor:crosshair}
+.cell svg{display:block;width:100%;height:100%}
+.readout{position:absolute;left:20px;right:20px;bottom:16px;display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--steel);font-variant-numeric:tabular-nums;pointer-events:none}
+.readout b{font-weight:600;color:var(--ink)}
+.hint{position:absolute;left:20px;top:16px;font-size:14px;color:var(--steel);pointer-events:none;transition:opacity .4s}
+.cell.touched .hint{opacity:0}
+
+/* sections */
+section{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px 48px;padding:56px 0;border-top:1px solid var(--rule)}
+h2{font-size:22px;font-weight:650;letter-spacing:-.01em;margin:0;line-height:1.3}
+.prose p{margin:0 0 1em;max-width:62ch}
+.prose p:last-child{margin-bottom:0}
+
+.chain{list-style:none;margin:0;padding:0;position:relative}
+.chain::before{content:"";position:absolute;left:7px;top:12px;bottom:12px;width:2px;background:var(--rule)}
+.chain li{position:relative;padding:0 0 28px 40px}
+.chain li:last-child{padding-bottom:0}
+.chain li::before{content:"";position:absolute;left:0;top:8px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--steel)}
+.chain li.now::before{background:var(--safety);border-color:var(--ink)}
+.chain .org{font-weight:650}
+.chain .what{color:var(--steel);max-width:58ch}
+
+.kit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.kit h3{font-size:17px;font-weight:650;margin:0 0 8px}
+.kit ul{list-style:none;margin:0;padding:0;color:var(--steel)}
+.kit li{padding:2px 0}
+
+.projects{display:grid;gap:22px}
+.projects a{font-weight:650;font-size:19px}
+.projects p{margin:2px 0 0;color:var(--steel);max-width:58ch}
+
+.contact-big{font-size:clamp(28px,4.4vw,46px);font-weight:700;letter-spacing:-.025em;line-height:1.1;margin:0 0 18px}
+.contact-big a{color:var(--ink);text-decoration-thickness:2px}
+.contact-list{display:flex;flex-wrap:wrap;gap:10px 28px;font-weight:550}
+
+footer{padding:40px 0 56px;color:var(--steel);font-size:14px;border-top:1px solid var(--rule)}
+
+[data-en]{display:none!important}
+html[lang="en"] [data-ru]{display:none!important}
+html[lang="en"] [data-en]{display:revert!important}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:28px;padding-bottom:48px}
+  .cell{max-height:none}
+  section{grid-template-columns:1fr;gap:20px;padding:44px 0}
+  .kit{grid-template-columns:1fr 1fr}
+}
+@media (max-width:520px){
+  .wrap{padding:0 16px}
+  body{font-size:17px}
+  .kit{grid-template-columns:1fr;gap:20px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="who" href="#top"><span data-ru>maksimshevchenko.ru</span><span data-en>maksimshevchenko.ru</span></a>
+  <div class="lang" role="group" aria-label="Язык / Language">
+    <button type="button" data-set-lang="ru" aria-pressed="true">Рус</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">Eng</button>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div>
+      <h1 data-ru><span>Максим</span><span>Шевченко</span></h1>
+      <h1 data-en><span>Maksim</span><span>Shevchenko</span></h1>
+      <p class="intro" data-ru>Инженер-робототехник и&nbsp;преподаватель. Проектирую роботов, программирую их и&nbsp;учу этому студентов.</p>
+      <p class="intro" data-en>Robotics engineer and lecturer. I design robots, program them, and teach students to do the same.</p>
+      <div class="links">
+        <a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">GitHub</a>
+        <!-- EMAIL: <a href="mailto:...">...</a> -->
+      </div>
+    </div>
+
+    <div class="cell" id="cell">
+      <svg id="arm" viewBox="0 0 520 520" role="img" aria-label="Робот-манипулятор следует за курсором">
+        <g fill="none">
+          <path id="envelope" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="3 7"/>
+          <line x1="40" x2="480" y1="462" y2="462" stroke="var(--steel)" stroke-width="2"/>
+          <path d="M228 462 L236 430 L284 430 L292 462 Z" fill="var(--ink)"/>
+          <g id="target" stroke="var(--steel)" stroke-width="1.5" opacity="0">
+            <circle r="9"/><line x1="-16" x2="-5"/><line x1="5" x2="16"/><line y1="-16" y2="-5"/><line y1="5" y2="16"/>
+          </g>
+          <line id="l1" stroke="var(--ink)" stroke-width="26" stroke-linecap="round"/>
+          <line id="l2" stroke="var(--ink)" stroke-width="20" stroke-linecap="round"/>
+          <line id="l3" stroke="var(--ink)" stroke-width="14" stroke-linecap="round"/>
+          <g id="grip" stroke="var(--ink)" stroke-width="6" stroke-linecap="round">
+            <line x1="0" y1="-12" x2="0" y2="12"/><line x1="0" y1="-12" x2="16" y2="-12"/><line x1="0" y1="12" x2="16" y2="12"/>
+          </g>
+          <circle id="j1" r="12" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
+          <circle id="j2" r="10" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
+          <circle id="j3" r="8" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
+        </g>
+      </svg>
+      <div class="hint"><span data-ru>Ведите курсором — манипулятор потянется следом</span><span data-en>Move your cursor — the arm will follow</span></div>
+      <div class="readout" aria-hidden="true">
+        <span>J1 <b id="a1">0°</b></span><span>J2 <b id="a2">0°</b></span><span>J3 <b id="a3">0°</b></span>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h2><span data-ru>Обо мне</span><span data-en>About</span></h2>
+    <div class="prose">
+      <div data-ru>
+        <p>Больше одиннадцати лет занимаюсь робототехникой. Начинал в&nbsp;РКК «Энергия» с&nbsp;исследований и&nbsp;разработок в&nbsp;космической робототехнике, потом перешёл в&nbsp;университеты.</p>
+        <p>Сейчас преподаю в&nbsp;МГТУ «СТАНКИН» и&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана, веду студенческие проекты и&nbsp;курс по&nbsp;промышленным роботам на&nbsp;английском языке для зарубежных студентов. Пишу программы повышения квалификации для инженеров и&nbsp;снял видеокурс по&nbsp;промышленной робототехнике.</p>
+        <p>Мне интересно, где робот встречается с&nbsp;реальной задачей: манипулятор в&nbsp;цехе, мобильная платформа, которая сама находит дорогу, и&nbsp;выпускник, который может сразу работать с&nbsp;настоящим оборудованием.</p>
+      </div>
+      <div data-en>
+        <p>I have worked in robotics for more than eleven years. I started at RSC Energia doing R&amp;D in space robotics, then moved into universities.</p>
+        <p>Today I teach at Moscow State University of Technology “STANKIN” and Bauman Moscow State Technical University, supervise student projects, and teach an English-language course on industrial robots for international students. I also write professional training programs for engineers and have recorded a video course on industrial robotics.</p>
+        <p>What interests me is where a robot meets a real task: an arm on the shop floor, a mobile platform that finds its own way, and a graduate who can work with real equipment from day one.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-ru>Путь</span><span data-en>Path</span></h2>
+    <ol class="chain">
+      <li>
+        <div class="org" data-ru>РКК «Энергия»</div><div class="org" data-en>RSC Energia</div>
+        <div class="what" data-ru>Исследования и&nbsp;разработки в&nbsp;космической робототехнике.</div>
+        <div class="what" data-en>R&amp;D in space robotics.</div>
+      </li>
+      <li class="now">
+        <div class="org" data-ru>МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана</div><div class="org" data-en>Bauman Moscow State Technical University</div>
+        <div class="what" data-ru>Учился робототехнике и&nbsp;мехатронике, теперь преподаю.</div>
+        <div class="what" data-en>Studied robotics and mechatronics; now teach there.</div>
+      </li>
+      <li class="now">
+        <div class="org" data-ru>МГТУ «СТАНКИН»</div><div class="org" data-en>STANKIN</div>
+        <div class="what" data-ru>Преподавание, лаборатория робототехники, студенческое бюро робототехники: команды, мобильные платформы, соревнования. Команда бюро стала призёром инженерного хакатона РКК «Энергия».</div>
+        <div class="what" data-en>Teaching, a robotics lab, and a student robotics bureau: teams, mobile platforms, competitions. The bureau’s team placed at RSC Energia’s engineering hackathon.</div>
+      </li>
+      <li class="now">
+        <div class="org" data-ru>Преподавание за&nbsp;рубежом</div><div class="org" data-en>Teaching abroad</div>
+        <div class="what" data-ru>Курс по&nbsp;программированию и&nbsp;эксплуатации промышленных роботов на&nbsp;английском языке.</div>
+        <div class="what" data-en>An English-taught course on programming and operating industrial robots.</div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2><span data-ru>С&nbsp;чем работаю</span><span data-en>What I work with</span></h2>
+    <div class="kit">
+      <div>
+        <h3><span data-ru>Промышленные роботы</span><span data-en>Industrial robots</span></h3>
+        <ul><li>ABB RobotStudio</li><li>FANUC</li><li>KUKA</li><li data-ru>Коллаборативные роботы</li><li data-en>Collaborative robots</li></ul>
+      </div>
+      <div>
+        <h3><span data-ru>Мобильные роботы</span><span data-en>Mobile robots</span></h3>
+        <ul><li>ROS&nbsp;2</li><li>Nav2</li><li>Gazebo</li><li data-ru>Компьютерное зрение, OpenCV</li><li data-en>Computer vision, OpenCV</li></ul>
+      </div>
+      <div>
+        <h3><span data-ru>Программирование</span><span data-en>Programming</span></h3>
+        <ul><li>Python</li><li>C++</li><li>MoveIt</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-ru>Проекты</span><span data-en>Projects</span></h2>
+    <div class="projects">
+      <div>
+        <a href="https://github.com/shevchenko-robotics/abbr-gost-word" target="_blank" rel="noopener">abbr-gost-word</a>
+        <p data-ru>Надстройка для Word: находит сокращения в&nbsp;тексте и&nbsp;проверяет их по&nbsp;ГОСТ.</p>
+        <p data-en>A Word add-in that finds abbreviations in a document and checks them against Russian GOST standards.</p>
+      </div>
+      <div>
+        <a href="https://github.com/vkr-robotics" target="_blank" rel="noopener">vkr-robotics</a>
+        <p data-ru>Выпускные работы моих студентов по&nbsp;робототехнике и&nbsp;шаблон репозитория для них.</p>
+        <p data-en>My students’ graduation projects in robotics and a repository template for them.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2><span data-ru>Связаться</span><span data-en>Contact</span></h2>
+    <div>
+      <p class="contact-big"><a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">@m_shevchenko</a></p>
+      <div class="contact-list">
+        <span data-ru>Быстрее всего — в&nbsp;Telegram.</span><span data-en>Telegram is the fastest way to reach me.</span>
+        <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">github.com/shevchenko-robotics</a>
+        <!-- EMAIL -->
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>© <span id="y">2026</span> <span data-ru>Максим Шевченко</span><span data-en>Maksim Shevchenko</span></footer>
+</div>
+
+<script>
+(function(){
+  /* language */
+  var root=document.documentElement;
+  var meta={ru:{t:"Максим Шевченко",d:"Инженер-робототехник и преподаватель. Космическая, промышленная и мобильная робототехника, инженерное образование."},
+            en:{t:"Maksim Shevchenko",d:"Robotics engineer and lecturer. Space, industrial and mobile robotics, engineering education."}};
+  function setLang(l){
+    l=l==="en"?"en":"ru"; root.lang=l; document.title=meta[l].t;
+    document.querySelector('meta[name="description"]').content=meta[l].d;
+    document.querySelectorAll("[data-set-lang]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.setLang===l))});
+    document.getElementById("arm").setAttribute("aria-label",l==="en"?"Robot arm following the cursor":"Робот-манипулятор следует за курсором");
+  }
+  var q=new URLSearchParams(location.search).get("lang"),saved=null;
+  try{saved=localStorage.getItem("lang")}catch(e){}
+  setLang(q||saved||((navigator.language||"ru").toLowerCase().indexOf("ru")===0?"ru":"en"));
+  document.querySelectorAll("[data-set-lang]").forEach(function(b){
+    b.addEventListener("click",function(){setLang(b.dataset.setLang);try{localStorage.setItem("lang",b.dataset.setLang)}catch(e){}});
+  });
+  document.getElementById("y").textContent=new Date().getFullYear();
+
+  /* robot arm: 3-link planar manipulator solved with FABRIK */
+  var svg=document.getElementById("arm"),cell=document.getElementById("cell");
+  var L=[150,120,62],R=L[0]+L[1]+L[2],base={x:260,y:430};
+  var P=[{x:260,y:430},{x:260,y:280},{x:260,y:160},{x:260,y:98}];
+  var goal={x:360,y:220},cur={x:360,y:220},lastMove=-1e9;
+  var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $=function(id){return document.getElementById(id)};
+  $("envelope").setAttribute("d","M"+(base.x-R)+" "+base.y+" A"+R+" "+R+" 0 0 1 "+(base.x+R)+" "+base.y);
+
+  function clampGoal(p){
+    var y=Math.min(p.y,base.y-24),dx=p.x-base.x,dy=y-base.y,d=Math.hypot(dx,dy),m=R-2;
+    if(d>m){dx*=m/d;dy*=m/d}
+    return {x:Math.max(44,Math.min(476,base.x+dx)),y:Math.max(44,base.y+dy)};
+  }
+  function solve(t){
+    for(var it=0;it<12;it++){
+      P[3]={x:t.x,y:t.y};
+      for(var i=2;i>=0;i--){var dx=P[i].x-P[i+1].x,dy=P[i].y-P[i+1].y,d=Math.hypot(dx,dy)||1;P[i]={x:P[i+1].x+dx*L[i]/d,y:P[i+1].y+dy*L[i]/d}}
+      P[0]={x:base.x,y:base.y};
+      for(i=0;i<3;i++){dx=P[i+1].x-P[i].x;dy=P[i+1].y-P[i].y;d=Math.hypot(dx,dy)||1;P[i+1]={x:P[i].x+dx*L[i]/d,y:P[i].y+dy*L[i]/d}}
+      /* keep the elbow above the floor */
+      for(i=1;i<4;i++){if(P[i].y>base.y-14)P[i].y=base.y-14}
+      if(Math.hypot(P[3].x-t.x,P[3].y-t.y)<.5)break;
+    }
+  }
+  function ang(a,b){return Math.atan2(-(b.y-a.y),b.x-a.x)*180/Math.PI}
+  function norm(a){while(a>180)a-=360;while(a<-180)a+=360;return a}
+  function draw(){
+    [["l1",0],["l2",1],["l3",2]].forEach(function(s){var e=$(s[0]),a=P[s[1]],b=P[s[1]+1];e.setAttribute("x1",a.x);e.setAttribute("y1",a.y);e.setAttribute("x2",b.x);e.setAttribute("y2",b.y)});
+    $("j1").setAttribute("cx",P[0].x);$("j1").setAttribute("cy",P[0].y);
+    $("j2").setAttribute("cx",P[1].x);$("j2").setAttribute("cy",P[1].y);
+    $("j3").setAttribute("cx",P[2].x);$("j3").setAttribute("cy",P[2].y);
+    var a3=Math.atan2(P[3].y-P[2].y,P[3].x-P[2].x)*180/Math.PI;
+    $("grip").setAttribute("transform","translate("+P[3].x+" "+P[3].y+") rotate("+a3+")");
+    var t1=ang(P[0],P[1]),t2=ang(P[1],P[2]),t3=ang(P[2],P[3]);
+    $("a1").textContent=Math.round(t1)+"°";
+    $("a2").textContent=Math.round(norm(t2-t1))+"°";
+    $("a3").textContent=Math.round(norm(t3-t2))+"°";
+  }
+  function toSvg(e){
+    var pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  function onPoint(e){
+    var p=toSvg(e);goal=clampGoal(p);lastMove=performance.now();cell.classList.add("touched");
+    var tg=$("target");tg.setAttribute("transform","translate("+p.x+" "+p.y+")");tg.setAttribute("opacity","1");
+    if(reduce){cur=goal;solve(cur);draw()}
+  }
+  document.querySelector(".hero").addEventListener("pointermove",onPoint);
+  cell.addEventListener("pointerdown",onPoint);
+  document.querySelector(".hero").addEventListener("pointerleave",function(){$("target").setAttribute("opacity","0")});
+
+  solve(cur);draw();
+  if(reduce)return;
+  var t0=performance.now();
+  (function tick(now){
+    if(now-lastMove>2500){
+      $("target").setAttribute("opacity","0");
+      var s=(now-t0)/1000;
+      goal=clampGoal({x:base.x+150*Math.sin(s*.45),y:220+70*Math.sin(s*.9+1)});
+    }
+    cur.x+=(goal.x-cur.x)*.12;cur.y+=(goal.y-cur.y)*.12;
+    solve(cur);draw();
+    requestAnimationFrame(tick);
+  })(t0);
+})();
+</script>
+</body>
+</html>
