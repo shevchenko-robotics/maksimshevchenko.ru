@@ -16,7 +16,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:url" content="https://maksimshevchenko.ru/">
 <link rel="canonical" href="https://maksimshevchenko.ru/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231B2430'/%3E%3Cpath d='M16 50 L28 30 L44 22' stroke='%23F2B705' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='16' cy='50' r='5' fill='%23fff'/%3E%3Ccircle cx='28' cy='30' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;
@@ -96,6 +98,10 @@ h2{font-size:22px;font-weight:650;letter-spacing:-.01em;margin:0;line-height:1.3
 .interests{margin:0 0 1em;padding-left:1.1em;max-width:62ch}
 .interests li{padding:2px 0}
 .interests li::marker{color:var(--steel)}
+.records{list-style:none;margin:0;padding:0;display:grid;gap:24px;max-width:64ch}
+.records .kind{display:block;color:var(--steel);font-size:15px}
+.records .title{display:block;font-weight:600}
+.records .meta{display:block;color:var(--steel);font-size:15.5px;margin-top:2px}
 .mentions{list-style:none;margin:0;padding:0;display:grid;gap:20px;max-width:64ch}
 .mentions a{color:var(--ink);font-weight:550}
 .mentions .src{display:block;color:var(--steel);font-size:15px;margin-top:2px}
@@ -167,16 +173,16 @@ html[lang="en"] [data-en]{display:revert!important}
     <div class="cell" id="cell">
       <svg id="arm" viewBox="0 0 520 520" role="img" aria-label="Робот-манипулятор следует за курсором">
         <g fill="none">
-          <path id="envelope" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="3 7"/>
-          <line x1="40" x2="480" y1="462" y2="462" stroke="var(--steel)" stroke-width="2"/>
-          <path d="M228 462 L236 430 L284 430 L292 462 Z" fill="var(--ink)"/>
-          <!-- base frame at J1 -->
-          <g stroke="var(--steel)" stroke-width="1.5">
-            <line x1="260" y1="430" x2="318" y2="430"/><path d="M318 430 l-7 -4 v8 z" fill="var(--steel)"/>
-            <line x1="260" y1="430" x2="260" y2="372"/><path d="M260 372 l-4 7 h8 z" fill="var(--steel)"/>
-          </g>
-          <text x="322" y="434" font-size="13" fill="var(--steel)" stroke="none" font-family="inherit">X</text>
-          <text x="266" y="372" font-size="13" fill="var(--steel)" stroke="none" font-family="inherit">Y</text>
+          <defs>
+            <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="9" stroke="var(--rule)" stroke-width="2"/>
+            </pattern>
+          </defs>
+          <path id="noreach" fill="url(#hatch)" fill-rule="evenodd" stroke="none"/>
+          <path id="envelope" stroke="var(--steel)" stroke-width="1.5" stroke-dasharray="3 6"/>
+          <text id="singTxt" x="260" y="463" text-anchor="middle" font-size="13" fill="#C2413A" stroke="none" font-family="inherit" opacity="0"><tspan data-ru>сингулярность: рука вытянута</tspan><tspan data-en>singularity: arm fully stretched</tspan></text>
+          <line x1="40" x2="480" y1="440" y2="440" stroke="var(--steel)" stroke-width="2"/>
+          <path d="M230 440 L238 400 L282 400 L290 440 Z" fill="var(--ink)"/>
           <g id="path"></g>
           <g id="trail" stroke="var(--link)" stroke-linecap="round"></g>
           <g id="wps"></g>
@@ -279,6 +285,47 @@ html[lang="en"] [data-en]{display:revert!important}
   </section>
 
 
+  <section id="works">
+    <h2><span data-ru>Патенты и&nbsp;публикации</span><span data-en>Patents and publications</span></h2>
+    <ul class="records">
+      <li>
+        <span class="kind"><span data-ru>Патент на&nbsp;изобретение RU&nbsp;2869712&nbsp;C1, 2026</span><span data-en>Russian patent RU&nbsp;2869712&nbsp;C1, 2026</span></span>
+        <div class="title" data-ru>Способ управления совместным движением гетерогенной многоагентной системой</div>
+        <div class="title" data-en>Method for controlling the joint motion of a heterogeneous multi-agent system</div>
+        <div class="meta" data-ru>Совместно с&nbsp;А.&nbsp;В.&nbsp;Пешниным, М.&nbsp;А.&nbsp;Гридневым, М.&nbsp;А.&nbsp;Шереужевым. Патентообладатель — МГТУ «СТАНКИН».</div>
+        <div class="meta" data-en>With A.&nbsp;V.&nbsp;Peshnin, M.&nbsp;A.&nbsp;Gridnev, M.&nbsp;A.&nbsp;Shereuzhev. Patent holder: STANKIN.</div>
+      </li>
+      <li>
+        <span class="kind"><span data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2025695805, 2025</span><span data-en>Registered software RU&nbsp;2025695805, 2025</span></span>
+        <div class="title" data-ru>Модуль управления пользовательскими контейнерами для&nbsp;образовательной платформы по&nbsp;робототехнике (серверная часть)</div>
+        <div class="title" data-en>User container management module for a robotics education platform (server side)</div>
+        <div class="meta" data-ru>Совместно с&nbsp;М.&nbsp;А.&nbsp;Шереужевым, А.&nbsp;В.&nbsp;Пешниным, Ф.&nbsp;В.&nbsp;Девяткиным. Правообладатель — МГТУ «СТАНКИН».</div>
+        <div class="meta" data-en>With M.&nbsp;A.&nbsp;Shereuzhev, A.&nbsp;V.&nbsp;Peshnin, F.&nbsp;V.&nbsp;Devyatkin. Rights holder: STANKIN.</div>
+      </li>
+      <li>
+        <span class="kind"><span data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2023685496, 2023</span><span data-en>Registered software RU&nbsp;2023685496, 2023</span></span>
+        <div class="title" data-ru>Регулятор интенсивности освещения (LIV controller)</div>
+        <div class="title" data-en>Lighting intensity controller (LIV controller)</div>
+        <div class="meta" data-ru>Совместно с&nbsp;А.&nbsp;С.&nbsp;Героевым.</div>
+        <div class="meta" data-en>With A.&nbsp;S.&nbsp;Geroev.</div>
+      </li>
+      <li>
+        <span class="kind"><span data-ru>Статья, 2019</span><span data-en>Article, 2019</span></span>
+        <div class="title" data-ru>Моделирование червеобразного движения робота-змеи с&nbsp;учётом динамики</div>
+        <div class="title" data-en>Modeling the worm-like motion of a snake robot with dynamics</div>
+        <div class="meta" data-ru>В.&nbsp;А.&nbsp;Польский, А.&nbsp;А.&nbsp;Лукин, М.&nbsp;Ю.&nbsp;Шевченко. Электронный научный журнал «E-Scio.ru».</div>
+        <div class="meta" data-en>V.&nbsp;A.&nbsp;Polsky, A.&nbsp;A.&nbsp;Lukin, M.&nbsp;Yu.&nbsp;Shevchenko. E-Scio.ru online journal (in Russian).</div>
+      </li>
+      <li>
+        <span class="kind"><span data-ru>Акселераторы, 2023</span><span data-en>Accelerators, 2023</span></span>
+        <div class="title" data-ru>Акселератор НТИ и&nbsp;«Физтех.Аэро»</div>
+        <div class="title" data-en>NTI Accelerator and Phystech.Aero</div>
+        <div class="meta" data-ru>В&nbsp;Акселераторе НТИ — проект энергосберегающего уличного светильника, который сам ориентирует солнечные модули. «Физтех.Аэро» — акселерационная программа МФТИ.</div>
+        <div class="meta" data-en>At the NTI Accelerator: an energy-saving street light that orients its own solar panels. Phystech.Aero is MIPT’s accelerator program.</div>
+      </li>
+    </ul>
+  </section>
+
   <section id="students">
     <h2><span data-ru>Студентам и&nbsp;дипломникам</span><span data-en>For students</span></h2>
     <div class="prose">
@@ -363,18 +410,24 @@ html[lang="en"] [data-en]{display:revert!important}
      Base frame is at J1; 1 svg unit = 3 mm; Y points up. */
   var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
-  var L=[150,120,62],R=L[0]+L[1]+L[2],base={x:260,y:430},FLOOR=base.y-14,MM=3;
-  var P=[{x:260,y:430},{x:260,y:280},{x:260,y:160},{x:260,y:98}];
-  var goal={x:360,y:220},cur={x:360,y:220},lastMove=-1e9;
+  var L=[115,85,40],R=L[0]+L[1]+L[2],base={x:260,y:400},FLOOR=428,MM=4;
+  var P=[{x:260,y:400},{x:260,y:285},{x:260,y:200},{x:260,y:160}];
+  var goal={x:340,y:260},cur={x:340,y:260},lastMove=-1e9;
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var lang=function(){return document.documentElement.lang==="en"?"en":"ru"};
-  $("envelope").setAttribute("d","M"+(base.x-R)+" "+base.y+" A"+R+" "+R+" 0 0 1 "+(base.x+R)+" "+base.y);
+  /* workspace: disc of radius R around J1, cut by the floor */
+  (function(){
+    var h=FLOOR-base.y,w=Math.sqrt(R*R-h*h),xl=base.x-w,xr=base.x+w;
+    var env="M"+xl+" "+FLOOR+" A"+R+" "+R+" 0 1 1 "+xr+" "+FLOOR+" Z";
+    $("envelope").setAttribute("d","M"+xl+" "+FLOOR+" A"+R+" "+R+" 0 1 1 "+xr+" "+FLOOR);
+    $("noreach").setAttribute("d","M0 0 H520 V520 H0 Z "+env);
+  })();
 
-  function reachable(p){return p.y<=FLOOR-10&&Math.hypot(p.x-base.x,p.y-base.y)<=R-4&&p.x>=30&&p.x<=490&&p.y>=30}
+  function reachable(p){return p.y<=FLOOR&&Math.hypot(p.x-base.x,p.y-base.y)<=R}
   function clampGoal(p){
-    var y=Math.min(p.y,FLOOR-10),dx=p.x-base.x,dy=y-base.y,d=Math.hypot(dx,dy),m=R-4;
+    var y=Math.min(p.y,FLOOR),dx=p.x-base.x,dy=y-base.y,d=Math.hypot(dx,dy),m=R-.5;
     if(d>m){dx*=m/d;dy*=m/d}
-    return {x:Math.max(40,Math.min(480,base.x+dx)),y:Math.max(40,base.y+dy)};
+    return {x:base.x+dx,y:base.y+dy};
   }
   function solve(t){
     for(var it=0;it<14;it++){
@@ -403,6 +456,9 @@ html[lang="en"] [data-en]{display:revert!important}
     $("a3").textContent=deg(-wrap(a[2]-a[1]))+"°";
     $("tx").textContent=Math.round((P[3].x-base.x)*MM);
     $("ty").textContent=Math.round((base.y-P[3].y)*MM);
+    var sing=Math.hypot(P[3].x-base.x,P[3].y-base.y)>R-3;
+    $("envelope").setAttribute("stroke",sing?"#C2413A":"var(--steel)");
+    $("singTxt").setAttribute("opacity",sing?"1":"0");
   }
 
   /* fading tool path */
@@ -523,7 +579,7 @@ html[lang="en"] [data-en]{display:revert!important}
       if(!reduce&&now-lastMove>2500&&!wps.length){
         $("target").setAttribute("opacity","0");
         var s=(now-t0)/1000;
-        goal=clampGoal({x:base.x+150*Math.sin(s*.45),y:220+70*Math.sin(s*.9+1)});
+        goal=clampGoal({x:base.x+140*Math.sin(s*.45),y:270+60*Math.sin(s*.9+1)});
       }
       var k=reduce?1:.12;
       cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
