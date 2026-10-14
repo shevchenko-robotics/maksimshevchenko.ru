@@ -58,17 +58,28 @@ h1 span{display:block}
 .links{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:17px;font-weight:550}
 .links a{color:var(--ink)}
 
-.cell{position:relative;background:var(--panel);border-radius:20px;aspect-ratio:1/1;max-height:560px;width:100%;overflow:hidden;touch-action:none;cursor:crosshair}
+.cell{position:relative;background:var(--panel);border-radius:20px;aspect-ratio:1/1;max-height:560px;width:100%;overflow:hidden;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
 .cell svg{display:block;width:100%;height:100%}
+.cell .bad{stroke:#C2413A}
 .readout{position:absolute;left:20px;right:20px;bottom:16px;display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--steel);font-variant-numeric:tabular-nums;pointer-events:none}
-.readout b{font-weight:600;color:var(--ink)}
+.readout b{font-weight:600;color:var(--ink);display:inline-block;min-width:3.2ch}
 .readout .joints,.readout .tcp{display:flex;gap:14px}
 .readout .tcp{gap:10px}
-.readout b{display:inline-block;min-width:3.2ch}
 .touch-only{display:none}
 @media (pointer:coarse){.touch-only{display:inline}.mouse-only{display:none}}
-.hint{position:absolute;left:20px;top:16px;font-size:14px;color:var(--steel);pointer-events:none;transition:opacity .4s}
-.cell.touched .hint{opacity:0}
+
+/* teach pendant strip */
+.pendant{position:absolute;left:16px;right:16px;top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--steel)}
+.pendant .msg{padding:4px 4px}
+.pendant .msg.warn{color:#C2413A}
+.pendant button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:4px 10px;border-radius:8px;line-height:1.4}
+.pendant button:disabled{opacity:.45;cursor:default}
+.pendant .seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.pendant .seg button{border:0;border-radius:0;background:transparent;color:var(--steel)}
+.pendant .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.pendant .run[aria-pressed="true"]{background:var(--safety);border-color:var(--ink)}
+.pendant .ctl{display:none;gap:8px;align-items:center;flex-wrap:wrap}
+.cell.has-points .pendant .ctl{display:flex}
 
 /* sections */
 section{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px 48px;padding:56px 0;border-top:1px solid var(--rule)}
@@ -148,7 +159,16 @@ html[lang="en"] [data-en]{display:revert!important}
           <path id="envelope" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="3 7"/>
           <line x1="40" x2="480" y1="462" y2="462" stroke="var(--steel)" stroke-width="2"/>
           <path d="M228 462 L236 430 L284 430 L292 462 Z" fill="var(--ink)"/>
+          <!-- base frame at J1 -->
+          <g stroke="var(--steel)" stroke-width="1.5">
+            <line x1="260" y1="430" x2="318" y2="430"/><path d="M318 430 l-7 -4 v8 z" fill="var(--steel)"/>
+            <line x1="260" y1="430" x2="260" y2="372"/><path d="M260 372 l-4 7 h8 z" fill="var(--steel)"/>
+          </g>
+          <text x="322" y="434" font-size="13" fill="var(--steel)" stroke="none" font-family="inherit">X</text>
+          <text x="266" y="372" font-size="13" fill="var(--steel)" stroke="none" font-family="inherit">Y</text>
+          <g id="path"></g>
           <g id="trail" stroke="var(--link)" stroke-linecap="round"></g>
+          <g id="wps"></g>
           <g id="target" stroke="var(--steel)" stroke-width="1.5" opacity="0">
             <circle r="9"/><line x1="-16" x2="-5"/><line x1="5" x2="16"/><line y1="-16" y2="-5"/><line y1="5" y2="16"/>
           </g>
@@ -163,7 +183,20 @@ html[lang="en"] [data-en]{display:revert!important}
           <circle id="j3" r="8" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
         </g>
       </svg>
-      <div class="hint"><span data-ru><span class="mouse-only">Ведите курсором — манипулятор потянется следом</span><span class="touch-only">Коснитесь — манипулятор потянется к&nbsp;пальцу</span></span><span data-en><span class="mouse-only">Move your cursor — the arm will follow</span><span class="touch-only">Touch the panel — the arm will follow</span></span></div>
+      <div class="pendant" id="pendant">
+        <span class="msg" id="msg">
+          <span data-ru><span class="mouse-only">Ведите курсором — манипулятор следует. Щелчок ставит точку программы.</span><span class="touch-only">Касание ставит точку программы</span></span>
+          <span data-en><span class="mouse-only">Move the cursor and the arm follows. Click to add a program point.</span><span class="touch-only">Tap to add a program point</span></span>
+        </span>
+        <span class="ctl">
+          <span class="seg" role="group" aria-label="Тип движения">
+            <button type="button" data-move="J" aria-pressed="true" title="Интерполяция в пространстве суставов">MoveJ</button>
+            <button type="button" data-move="L" aria-pressed="false" title="Прямолинейное движение схвата">MoveL</button>
+          </span>
+          <button type="button" class="run" id="run" aria-pressed="false" disabled><span data-ru>Пуск</span><span data-en>Run</span></button>
+          <button type="button" id="clear"><span data-ru>Сбросить</span><span data-en>Clear</span></button>
+        </span>
+      </div>
       <div class="readout" aria-hidden="true">
         <span class="joints"><span>J1 <b id="a1">0°</b></span><span>J2 <b id="a2">0°</b></span><span>J3 <b id="a3">0°</b></span></span>
         <span class="tcp"><span>X <b id="tx">0</b></span><span>Y <b id="ty">0</b></span><span data-ru>мм</span><span data-en>mm</span></span>
@@ -271,49 +304,54 @@ html[lang="en"] [data-en]{display:revert!important}
   });
   document.getElementById("y").textContent=new Date().getFullYear();
 
-  /* robot arm: 3-link planar manipulator solved with FABRIK */
-  var svg=document.getElementById("arm"),cell=document.getElementById("cell");
-  var L=[150,120,62],R=L[0]+L[1]+L[2],base={x:260,y:430};
+  /* robot arm: 3-link planar manipulator, IK by FABRIK.
+     Base frame is at J1; 1 svg unit = 3 mm; Y points up. */
+  var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
+  var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
+  var L=[150,120,62],R=L[0]+L[1]+L[2],base={x:260,y:430},FLOOR=base.y-14,MM=3;
   var P=[{x:260,y:430},{x:260,y:280},{x:260,y:160},{x:260,y:98}];
   var goal={x:360,y:220},cur={x:360,y:220},lastMove=-1e9;
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var $=function(id){return document.getElementById(id)};
+  var lang=function(){return document.documentElement.lang==="en"?"en":"ru"};
   $("envelope").setAttribute("d","M"+(base.x-R)+" "+base.y+" A"+R+" "+R+" 0 0 1 "+(base.x+R)+" "+base.y);
 
+  function reachable(p){return p.y<=FLOOR-10&&Math.hypot(p.x-base.x,p.y-base.y)<=R-4&&p.x>=30&&p.x<=490&&p.y>=30}
   function clampGoal(p){
-    var y=Math.min(p.y,base.y-24),dx=p.x-base.x,dy=y-base.y,d=Math.hypot(dx,dy),m=R-2;
+    var y=Math.min(p.y,FLOOR-10),dx=p.x-base.x,dy=y-base.y,d=Math.hypot(dx,dy),m=R-4;
     if(d>m){dx*=m/d;dy*=m/d}
-    return {x:Math.max(44,Math.min(476,base.x+dx)),y:Math.max(44,base.y+dy)};
+    return {x:Math.max(40,Math.min(480,base.x+dx)),y:Math.max(40,base.y+dy)};
   }
   function solve(t){
-    for(var it=0;it<12;it++){
+    for(var it=0;it<14;it++){
       P[3]={x:t.x,y:t.y};
       for(var i=2;i>=0;i--){var dx=P[i].x-P[i+1].x,dy=P[i].y-P[i+1].y,d=Math.hypot(dx,dy)||1;P[i]={x:P[i+1].x+dx*L[i]/d,y:P[i+1].y+dy*L[i]/d}}
       P[0]={x:base.x,y:base.y};
       for(i=0;i<3;i++){dx=P[i+1].x-P[i].x;dy=P[i+1].y-P[i].y;d=Math.hypot(dx,dy)||1;P[i+1]={x:P[i].x+dx*L[i]/d,y:P[i].y+dy*L[i]/d}}
-      /* keep the elbow above the floor */
-      for(i=1;i<4;i++){if(P[i].y>base.y-14)P[i].y=base.y-14}
-      if(Math.hypot(P[3].x-t.x,P[3].y-t.y)<.5)break;
+      for(i=1;i<4;i++){if(P[i].y>FLOOR)P[i].y=FLOOR}
+      if(Math.hypot(P[3].x-t.x,P[3].y-t.y)<.4)break;
     }
   }
-  function ang(a,b){return Math.atan2(-(b.y-a.y),b.x-a.x)*180/Math.PI}
-  function norm(a){while(a>180)a-=360;while(a<-180)a+=360;return a}
+  /* absolute link angles (svg frame) and forward kinematics */
+  function linkAngles(){var a=[];for(var i=0;i<3;i++)a.push(Math.atan2(P[i+1].y-P[i].y,P[i+1].x-P[i].x));return a}
+  function fk(a){P[0]={x:base.x,y:base.y};for(var i=0;i<3;i++)P[i+1]={x:P[i].x+L[i]*Math.cos(a[i]),y:P[i].y+L[i]*Math.sin(a[i])}}
+  function wrap(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a}
+  function deg(r){return Math.round(r*180/Math.PI)}
+
   function draw(){
     [["l1",0],["l2",1],["l3",2]].forEach(function(s){var e=$(s[0]),a=P[s[1]],b=P[s[1]+1];e.setAttribute("x1",a.x);e.setAttribute("y1",a.y);e.setAttribute("x2",b.x);e.setAttribute("y2",b.y)});
-    $("j1").setAttribute("cx",P[0].x);$("j1").setAttribute("cy",P[0].y);
-    $("j2").setAttribute("cx",P[1].x);$("j2").setAttribute("cy",P[1].y);
-    $("j3").setAttribute("cx",P[2].x);$("j3").setAttribute("cy",P[2].y);
-    var a3=Math.atan2(P[3].y-P[2].y,P[3].x-P[2].x)*180/Math.PI;
-    $("grip").setAttribute("transform","translate("+P[3].x+" "+P[3].y+") rotate("+a3+")");
-    var t1=ang(P[0],P[1]),t2=ang(P[1],P[2]),t3=ang(P[2],P[3]);
-    $("a1").textContent=Math.round(t1)+"°";
-    $("a2").textContent=Math.round(norm(t2-t1))+"°";
-    $("a3").textContent=Math.round(norm(t3-t2))+"°";
-    $("tx").textContent=Math.round((P[3].x-base.x)*3);
-    $("ty").textContent=Math.round((base.y-P[3].y)*3);
+    for(var i=0;i<3;i++){$("j"+(i+1)).setAttribute("cx",P[i].x);$("j"+(i+1)).setAttribute("cy",P[i].y)}
+    var a=linkAngles();
+    $("grip").setAttribute("transform","translate("+P[3].x+" "+P[3].y+") rotate("+(a[2]*180/Math.PI)+")");
+    /* joint angles: J1 from +X of the base frame, J2/J3 relative to previous link; positive = counter-clockwise */
+    $("a1").textContent=deg(-a[0])+"°";
+    $("a2").textContent=deg(-wrap(a[1]-a[0]))+"°";
+    $("a3").textContent=deg(-wrap(a[2]-a[1]))+"°";
+    $("tx").textContent=Math.round((P[3].x-base.x)*MM);
+    $("ty").textContent=Math.round((base.y-P[3].y)*MM);
   }
+
   /* fading tool path */
-  var trail=[],TR_LIFE=2400,pool=[],NS="http://www.w3.org/2000/svg";
+  var trail=[],TR_LIFE=2400,pool=[];
   function drawTrail(now){
     var last=trail[trail.length-1],tip=P[3];
     if(!last||Math.hypot(tip.x-last.x,tip.y-last.y)>1.5)trail.push({x:tip.x,y:tip.y,t:now});
@@ -330,30 +368,113 @@ html[lang="en"] [data-en]{display:revert!important}
     }
     for(var j=Math.max(1,trail.length);j<pool.length;j++)if(pool[j])pool[j].style.display="none";
   }
-  function toSvg(e){
-    var pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
-    return pt.matrixTransform(svg.getScreenCTM().inverse());
+
+  /* teach mode: program points, MoveJ / MoveL playback */
+  var wps=[],MAXP=8,moveType="J",running=false,seg=null,msgTimer=0;
+  var msgDefault=$("msg").innerHTML;
+  function say(ru,en,warn){
+    var m=$("msg");clearTimeout(msgTimer);
+    m.textContent=lang()==="en"?en:ru;m.classList.toggle("warn",!!warn);
+    msgTimer=setTimeout(function(){m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault},2200);
   }
-  function onPoint(e){
-    var p=toSvg(e);goal=clampGoal(p);lastMove=performance.now();cell.classList.add("touched");
-    var tg=$("target");tg.setAttribute("transform","translate("+p.x+" "+p.y+")");tg.setAttribute("opacity","1");
-    if(reduce){cur=goal;solve(cur);draw()}
+  function renderWps(){
+    var g=$("wps");g.innerHTML="";
+    var path=$("path");path.innerHTML="";
+    if(wps.length>1){
+      var pl=document.createElementNS(NS,"polyline");
+      pl.setAttribute("points",wps.concat([wps[0]]).map(function(p){return p.x+","+p.y}).join(" "));
+      pl.setAttribute("stroke","var(--steel)");pl.setAttribute("stroke-width","1");pl.setAttribute("stroke-dasharray","2 5");pl.setAttribute("fill","none");
+      path.appendChild(pl);
+    }
+    wps.forEach(function(p,i){
+      var c=document.createElementNS(NS,"circle");c.setAttribute("cx",p.x);c.setAttribute("cy",p.y);c.setAttribute("r","5");
+      c.setAttribute("fill","var(--bg)");c.setAttribute("stroke","var(--ink)");c.setAttribute("stroke-width","2");g.appendChild(c);
+      var t=document.createElementNS(NS,"text");t.setAttribute("x",p.x+9);t.setAttribute("y",p.y-8);t.setAttribute("font-size","13");
+      t.setAttribute("fill","var(--ink)");t.setAttribute("font-family","inherit");t.textContent="P"+(i+1);g.appendChild(t);
+    });
+    cell.classList.toggle("has-points",wps.length>0);
+    $("run").disabled=wps.length<2;
+    if(wps.length&&!running)$("msg").innerHTML="";
+    if(!wps.length)$("msg").innerHTML=msgDefault;
   }
-  document.querySelector(".hero").addEventListener("pointermove",onPoint);
-  cell.addEventListener("pointerdown",onPoint);
-  document.querySelector(".hero").addEventListener("pointerleave",function(){$("target").setAttribute("opacity","0")});
+  function addPoint(p){
+    if(running)return;
+    if(!reachable(p)){flagBad(true);say("Точка вне рабочей зоны","Point is out of reach",true);return}
+    if(wps.length>=MAXP){say("Не больше "+MAXP+" точек","Up to "+MAXP+" points",true);return}
+    wps.push({x:p.x,y:p.y});renderWps();
+  }
+  function flagBad(b){$("target").classList.toggle("bad",b)}
+  function setRunning(on){
+    running=on&&wps.length>1;
+    $("run").setAttribute("aria-pressed",String(running));
+    $("run").querySelector("[data-ru]").textContent=running?"Стоп":"Пуск";
+    $("run").querySelector("[data-en]").textContent=running?"Stop":"Run";
+    seg=null;
+    if(running){nextSeg(0)}else{cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y}}
+  }
+  function nextSeg(i){
+    var from={x:P[3].x,y:P[3].y},to=wps[i%wps.length];
+    var s={i:i%wps.length,from:from,to:to,t:0,type:moveType};
+    if(moveType==="J"){
+      var a0=linkAngles(),save=P.map(function(q){return {x:q.x,y:q.y}});
+      solve(to);var a1=linkAngles();P=save;
+      var da=a1.map(function(v,k){return wrap(v-a0[k])}),m=Math.max.apply(null,da.map(Math.abs));
+      s.a0=a0;s.da=da;s.dur=Math.max(.5,m/1.6);
+    }else{
+      s.dur=Math.max(.5,Math.hypot(to.x-from.x,to.y-from.y)/170);
+    }
+    seg=s;
+  }
+  function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+  function stepProgram(dt){
+    seg.t=Math.min(1,seg.t+dt/seg.dur);var e=ease(seg.t);
+    if(seg.type==="J"){fk(seg.a0.map(function(v,k){return v+seg.da[k]*e}))}
+    else{solve({x:seg.from.x+(seg.to.x-seg.from.x)*e,y:seg.from.y+(seg.to.y-seg.from.y)*e})}
+    if(seg.t>=1){nextSeg(seg.i+1)}
+  }
+
+  document.querySelectorAll("[data-move]").forEach(function(b){
+    b.addEventListener("click",function(e){
+      e.stopPropagation();moveType=b.dataset.move;
+      document.querySelectorAll("[data-move]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});
+      if(running)nextSeg(seg?seg.i:0);
+    });
+  });
+  $("run").addEventListener("click",function(e){e.stopPropagation();setRunning(!running)});
+  $("clear").addEventListener("click",function(e){e.stopPropagation();setRunning(false);wps=[];renderWps()});
+  $("pendant").addEventListener("pointerdown",function(e){e.stopPropagation()});
+
+  function toSvg(e){var pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
+  function showTarget(p){var tg=$("target");tg.setAttribute("transform","translate("+p.x+" "+p.y+")");tg.setAttribute("opacity","1")}
+  hero.addEventListener("pointermove",function(e){
+    var p=toSvg(e);lastMove=performance.now();showTarget(p);
+    var inCell=e.target.closest&&e.target.closest("#cell");
+    flagBad(!!inCell&&!reachable(p));
+    if(!running)goal=clampGoal(p);
+  });
+  hero.addEventListener("pointerleave",function(){$("target").setAttribute("opacity","0")});
+  cell.addEventListener("pointerdown",function(e){
+    var p=toSvg(e);lastMove=performance.now();showTarget(p);
+    if(!running)goal=clampGoal(p);
+    addPoint(p);
+  });
 
   solve(cur);draw();
-  if(reduce)return;
-  var t0=performance.now();
+  var t0=performance.now(),prev=t0;
   (function tick(now){
-    if(now-lastMove>2500){
-      $("target").setAttribute("opacity","0");
-      var s=(now-t0)/1000;
-      goal=clampGoal({x:base.x+150*Math.sin(s*.45),y:220+70*Math.sin(s*.9+1)});
+    var dt=Math.min(.05,(now-prev)/1000);prev=now;
+    if(running){stepProgram(dt)}
+    else{
+      if(!reduce&&now-lastMove>2500&&!wps.length){
+        $("target").setAttribute("opacity","0");
+        var s=(now-t0)/1000;
+        goal=clampGoal({x:base.x+150*Math.sin(s*.45),y:220+70*Math.sin(s*.9+1)});
+      }
+      var k=reduce?1:.12;
+      cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
+      solve(cur);
     }
-    cur.x+=(goal.x-cur.x)*.12;cur.y+=(goal.y-cur.y)*.12;
-    solve(cur);draw();drawTrail(now);
+    draw();drawTrail(now);
     requestAnimationFrame(tick);
   })(t0);
 })();
