@@ -447,14 +447,20 @@ html[lang="en"] [data-en]{display:revert!important}
     for(var k=0;k<iters;k++){
       fkInto(v,tmp);
       var ex=t.x-tmp[3].x,ey=-(t.y-tmp[3].y);e=Math.sqrt(ex*ex+ey*ey);
-      if(e<.25)break;
+      if(e<.25&&k>2)break;
       var a=[v[0],v[0]+v[1],v[0]+v[1]+v[2]],J=[[0,0],[0,0],[0,0]];
       for(var i=0;i<3;i++)for(var j=i;j<3;j++){J[i][0]+=-L[j]*Math.sin(a[j]);J[i][1]+=L[j]*Math.cos(a[j])}
       var A=lam2,B=0,Dd=lam2;
       for(i=0;i<3;i++){A+=J[i][0]*J[i][0];B+=J[i][0]*J[i][1];Dd+=J[i][1]*J[i][1]}
       var det=A*Dd-B*B,ux=(Dd*ex-B*ey)/det,uy=(-B*ex+A*ey)/det;
       var dq=[0,0,0],m=0;
-      for(i=0;i<3;i++){dq[i]=J[i][0]*ux+J[i][1]*uy;m=Math.max(m,Math.abs(dq[i]))}
+      for(i=0;i<3;i++)dq[i]=J[i][0]*ux+J[i][1]*uy;
+      /* redundancy: 3 joints for a 2D point. Project a "stay away from the limits" gradient
+         into the null space of the Jacobian so it does not disturb the tool position. */
+      var Ai=Dd/det,Bi=-B/det,Di=A/det,z=[0,0,0],Jz0=0,Jz1=0;
+      for(i=0;i<3;i++){var mid=(LIM[i][0]+LIM[i][1])/2,half=(LIM[i][1]-LIM[i][0])/2,u=(v[i]-mid)/half;z[i]=-.12*(u*u*u+.3*u);Jz0+=J[i][0]*z[i];Jz1+=J[i][1]*z[i]}
+      var w0=Ai*Jz0+Bi*Jz1,w1=Bi*Jz0+Di*Jz1;
+      for(i=0;i<3;i++){dq[i]+=z[i]-(J[i][0]*w0+J[i][1]*w1);m=Math.max(m,Math.abs(dq[i]))}
       if(m>.06)for(i=0;i<3;i++)dq[i]*=.06/m;
       var ok=false;
       for(var s=1;s>.1&&!ok;s*=.5){
@@ -570,12 +576,8 @@ html[lang="en"] [data-en]{display:revert!important}
   (function build(){
     var g=$("armg");
     /* counterweight sits behind link 1 (it is mounted in another plane) */
-    /* counterweight: a tail of link 2 behind the elbow, ending in a round weight */
-    G.cw=mk("g",{});
     mk("path",{d:linkShape(L[0],17,12,3.5,5,4.2,5),fill:"var(--ink)","fill-rule":"evenodd"},G.l1=mk("g",{}));
     G.l2=mk("g",{});
-    mk("path",{d:"M-4 -10 C-12 -9 -16 -7 -21 -7.5 L-21 7.5 C-16 7 -12 9 -4 10 Z",fill:"var(--ink)"},G.l2);
-    mk("path",{d:"M-29 -12 a12 12 0 1 0 0.01 0 Z M-29 -4.5 a4.5 4.5 0 1 1 -0.01 0 Z",fill:"var(--ink)","fill-rule":"evenodd"},G.l2);
     mk("path",{d:linkShape(L[1],12,9,2.5,4,3.6,4.5),fill:"var(--ink)","fill-rule":"evenodd"},G.l2);
     G.l3=mk("g",{});
     mk("path",{d:linkShape(L[2]-20,9,7,1,0,0,0),fill:"var(--ink)"},G.l3);
@@ -598,7 +600,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function draw(){
     fkInto(q,P);
     var a1=-q[0]/D,a2=-(q[0]+q[1])/D,a3=-(q[0]+q[1]+q[2])/D;
-    place(G.cw,P[1],a2);place(G.l1,P[0],a1);place(G.l2,P[1],a2);place(G.l3,P[2],a3);
+    place(G.l1,P[0],a1);place(G.l2,P[1],a2);place(G.l3,P[2],a3);
     place(G.h0,P[0],0);place(G.h1,P[1],0);place(G.h2,P[2],0);
     var status="";
     for(var i=0;i<3;i++){
@@ -746,6 +748,9 @@ html[lang="en"] [data-en]{display:revert!important}
   cell.addEventListener("pointerup",release);
   cell.addEventListener("pointercancel",release);
 
+  /* demo motion: smooth oscillation in joint space, well inside the limits and away from the stretched singularity */
+  function demoQ(s){return [(90+42*Math.sin(s*.33))*D,(-62+30*Math.sin(s*.47+1))*D,(-58+34*Math.sin(s*.61+2))*D]}
+
   /* ---------- main loop ---------- */
   fkInto(q,P);draw();
   setTimeout(buildWorkspace,30);
@@ -757,11 +762,13 @@ html[lang="en"] [data-en]{display:revert!important}
       /* demo motion only after a long pause, fading in from where the arm is */
       var quiet=!inside&&!press&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
       if(quiet){
-        if(!idle){idle={t:now,from:{x:goal.x,y:goal.y}};$("target").setAttribute("opacity","0");flagBad(false)}
-        var s=(now-t0)/1000,w=Math.min(1,(now-idle.t)/3000);w=w*w*(3-2*w);
-        var c={x:base.x+150*Math.sin(s*.4),y:250+60*Math.sin(s*.8+1)};
-        goal={x:idle.from.x+(c.x-idle.from.x)*w,y:idle.from.y+(c.y-idle.from.y)*w};
-      }else idle=null;
+        if(!idle){idle={t:now,from:q.slice(),s0:(now-t0)/1000};reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
+        var w=Math.min(1,(now-idle.t)/3000);w=w*w*(3-2*w);
+        var dqv=demoQ((now-t0)/1000),qt=[0,1,2].map(function(i){return idle.from[i]+(dqv[i]-idle.from[i])*w});
+        drive(qt,dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
+        draw();drawTrail(now);requestAnimationFrame(tick);return;
+      }
+      idle=null;
       var k=reduce?1:.12;
       cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
       if(reconf){
