@@ -193,6 +193,7 @@ html[lang="en"] [data-en]{display:revert!important}
             <circle r="9"/><line x1="-16" x2="-5"/><line x1="5" x2="16"/><line y1="-16" y2="-5"/><line y1="5" y2="16"/>
           </g>
           <g id="armg"></g>
+          <circle id="tcp" r="3.4" fill="var(--link)" stroke="var(--panel)" stroke-width="1.2"/>
         </g>
       </svg>
       <div class="pendant" id="pendant">
@@ -481,7 +482,7 @@ html[lang="en"] [data-en]{display:revert!important}
   }
 
   /* ---------- reachable workspace with limits and collisions ---------- */
-  var CELL=3,GW=Math.ceil(520/CELL),reach=null,cfg=null;
+  var CELL=3,GW=Math.ceil(520/CELL),reach=null,cfg=null,reachList=[];
   function cellOf(p){var ix=Math.floor(p.x/CELL),iy=Math.floor(p.y/CELL);return (ix<0||iy<0||ix>=GW||iy>=GW)?-1:iy*GW+ix}
   function reachable(p){
     if(!reach)return Math.hypot(p.x-base.x,p.y-base.y)<=L[0]+L[1]+L[2]&&p.y<FLOOR_Y-6;
@@ -509,6 +510,7 @@ html[lang="en"] [data-en]{display:revert!important}
       if(s>=5){out[i]=1;var src=hit[i-1]?i-1:hit[i+1]?i+1:hit[i-GW]?i-GW:i+GW;conf[i*3]=conf[src*3];conf[i*3+1]=conf[src*3+1];conf[i*3+2]=conf[src*3+2]}
     }
     reach=out;cfg=conf;
+    reachList=[];for(i=0;i<n;i++)if(out[i])reachList.push(i);
     var cv=document.createElement("canvas");cv.width=GW;cv.height=GW;
     var cx=cv.getContext("2d"),img=cx.createImageData(GW,GW);
     for(i=0;i<n;i++){img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=255;img.data[i*4+3]=reach[i]?0:255}
@@ -611,6 +613,7 @@ html[lang="en"] [data-en]{display:revert!important}
     }
     $("tx").textContent=Math.round((P[3].x-base.x)*MM);
     $("ty").textContent=Math.round((base.y-P[3].y)*MM);
+    $("tcp").setAttribute("cx",P[3].x.toFixed(2));$("tcp").setAttribute("cy",P[3].y.toFixed(2));
     if(!idle&&Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D)status=lang()==="en"?"singularity: arm fully stretched":"сингулярность: рука вытянута";
     if(reconf)status=lang()==="en"?"changing arm configuration to reach the point":"меняю конфигурацию, чтобы дотянуться";
     if(blocked&&!status)status=lang()==="en"?"the arm cannot reach this point":"манипулятор не дотягивается до этой точки";
@@ -749,10 +752,41 @@ html[lang="en"] [data-en]{display:revert!important}
   cell.addEventListener("pointerup",release);
   cell.addEventListener("pointercancel",release);
 
-  /* demo motion: smooth oscillation in joint space, well inside the limits and away from the stretched singularity */
-  /* sum of sines with incommensurate frequencies: quasi-periodic, never repeats exactly */
-  var DEMO=[[90,[[40,.29,0],[14,.71,1.3],[7,1.13,2.1]]],[0,[[46,.37,.4],[16,.83,2.6],[7,1.31,.9]]],[0,[[46,.43,1.7],[18,.97,.3],[8,1.47,2.8]]]],DEMO_SPEED=1.7;
-  function demoQ(s){s*=DEMO_SPEED;return DEMO.map(function(j){var v=j[0];j[1].forEach(function(h){v+=h[0]*Math.sin(h[1]*s+h[2])});return v*D})}
+
+  /* demo v2: random points spread uniformly over the reachable area, each with a randomly chosen elbow pose,
+     joined by a smooth Catmull-Rom spline in joint space (no stops, collision-checked) */
+  var demo=null;
+  function rnd(a,b){return a+Math.random()*(b-a)}
+  function nextKnot(prevQ){
+    fkInto(prevQ,tmp);var from={x:tmp[3].x,y:tmp[3].y};
+    for(var tries=0;tries<80;tries++){
+      var c=reachList[Math.floor(Math.random()*reachList.length)],p={x:(c%GW+.5)*CELL,y:(Math.floor(c/GW)+.5)*CELL};
+      var dd=Math.hypot(p.x-from.x,p.y-from.y);if(dd<60||dd>170)continue; /* short hops keep joint-space arcs from bulging outwards */
+      var seed=[rnd(LIM[0][0]+.2,LIM[0][1]-.2),(Math.random()<.5?-1:1)*rnd(25,110)*D,(Math.random()<.5?-1:1)*rnd(20,110)*D];
+      var sol=ikFrom(seed,p,90);
+      if(sol.err>1.5||check(sol.q))continue;
+      if(!pathFree(prevQ,sol.q))continue;
+      return sol.q;
+    }
+    return null;
+  }
+  function segDur(a,b){var m=0;for(var i=0;i<3;i++)m=Math.max(m,Math.abs(b[i]-a[i]));return Math.max(.9,m/1.25)}
+  function startDemo(){var k=nextKnot(q)||q.slice();demo={k:[q.slice(),q.slice(),k,nextKnot(k)||k],t:0};demo.dur=segDur(demo.k[1],demo.k[2])}
+  function stepDemo(dt){
+    demo.t+=dt/demo.dur;
+    while(demo.t>=1){
+      demo.t-=1;demo.k.shift();
+      demo.k.push(nextKnot(demo.k[2])||demo.k[2].slice());
+      demo.dur=segDur(demo.k[1],demo.k[2]);
+    }
+    var t=demo.t,t2=t*t,t3=t2*t,K=demo.k,nq=[0,0,0],lin=[0,0,0];
+    for(var i=0;i<3;i++){
+      nq[i]=.5*((2*K[1][i])+(-K[0][i]+K[2][i])*t+(2*K[0][i]-5*K[1][i]+4*K[2][i]-K[3][i])*t2+(-K[0][i]+3*K[1][i]-3*K[2][i]+K[3][i])*t3);
+      var e=t*t*(3-2*t);lin[i]=K[1][i]+(K[2][i]-K[1][i])*e;
+    }
+    clampQ(nq);
+    if(!check(nq))q=nq;else if(!check(lin))q=lin;
+  }
 
   /* ---------- main loop ---------- */
   fkInto(q,P);draw();
@@ -764,11 +798,9 @@ html[lang="en"] [data-en]{display:revert!important}
     else{
       /* demo motion only after a long pause, fading in from where the arm is */
       var quiet=!inside&&!press&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
-      if(quiet){
-        if(!idle){idle={t:now,from:q.slice(),s0:(now-t0)/1000};reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
-        var w=Math.min(1,(now-idle.t)/3000);w=w*w*(3-2*w);
-        var dqv=demoQ((now-t0)/1000),qt=[0,1,2].map(function(i){return idle.from[i]+(dqv[i]-idle.from[i])*w});
-        if(!check(qt))q=qt;else drive(qt,dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
+      if(quiet&&reachList.length){
+        if(!idle){idle={t:now};startDemo();reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
+        stepDemo(dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
         draw();drawTrail(now);requestAnimationFrame(tick);return;
       }
       idle=null;
