@@ -11,6 +11,7 @@ Run from the repository root:  python3 tools/build.py
 import json
 import pathlib
 from bs4 import BeautifulSoup
+import records
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = "https://maksimshevchenko.ru"
@@ -93,6 +94,7 @@ def seo_block(lang):
 def build(lang):
     src = (ROOT / "src" / "page.html").read_text(encoding="utf-8")
     src = src.replace("<!--SEO-->", seo_block(lang), 1)
+    src = src.replace("<!--RECORDS-->", records.site_records(), 1).replace("<!--MENTIONS-->", records.site_mentions(), 1)
     soup = BeautifulSoup(src, "html.parser")
     other = "en" if lang == "ru" else "ru"
     for el in soup.select(f"[data-{other}]"):

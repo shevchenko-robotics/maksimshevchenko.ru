@@ -8,6 +8,7 @@ import datetime
 import pathlib
 import tempfile
 from bs4 import BeautifulSoup
+import records
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -15,13 +16,15 @@ MONTHS_RU = ["января", "февраля", "марта", "апреля", "м
 
 
 def page_for(lang):
-    soup = BeautifulSoup((ROOT / "src" / "cv.html").read_text(encoding="utf-8"), "html.parser")
+    src = (ROOT / "src" / "cv.html").read_text(encoding="utf-8").replace("<!--CV_RECORDS-->", records.cv_records(), 1)
+    soup = BeautifulSoup(src, "html.parser")
     other = "en" if lang == "ru" else "ru"
     for el in soup.select(f"[data-{other}]"):
         el.decompose()
     for el in soup.select(f"[data-{lang}]"):
         del el[f"data-{lang}"]
     soup.html["lang"] = lang
+    soup.title.string = "Максим Шевченко — резюме" if lang == "ru" else "Maksim Shevchenko — CV"
     d = datetime.date.today()
     soup.select_one(".upd").string = (f"{d.day} {MONTHS_RU[d.month - 1]} {d.year}" if lang == "ru" else d.strftime("%B %Y"))
     return str(soup)

@@ -1,0 +1,57 @@
+{
+  "_help": "Patents, publications and mentions shown on the site and in the CV. Newest first. Text in plain form: non-breaking spaces are added by tools/build.py. 'cv': true puts the record into the CV.",
+  "records": [
+    {
+      "cv": true,
+      "year": 2026,
+      "kind": {"ru": "Патент на изобретение RU 2869712 C1", "en": "Russian patent RU 2869712 C1"},
+      "cv_kind": {"ru": "Патент RU 2869712 C1", "en": "Patent RU 2869712 C1"},
+      "title": {"ru": "Способ управления совместным движением гетерогенной многоагентной системой", "en": "Method for controlling the joint motion of a heterogeneous multi-agent system"},
+      "meta": {"ru": "Совместно с А. В. Пешниным, М. А. Гридневым, М. А. Шереужевым. Патентообладатель — МГТУ «СТАНКИН».", "en": "With A. V. Peshnin, M. A. Gridnev, M. A. Shereuzhev. Patent holder: STANKIN."}
+    },
+    {
+      "cv": true,
+      "year": 2025,
+      "kind": {"ru": "Программа для ЭВМ RU 2025695805", "en": "Registered software RU 2025695805"},
+      "cv_kind": {"ru": "Программа для ЭВМ RU 2025695805", "en": "Registered software RU 2025695805"},
+      "title": {"ru": "Модуль управления пользовательскими контейнерами для образовательной платформы по робототехнике (серверная часть)", "en": "User container management module for a robotics education platform (server side)"},
+      "meta": {"ru": "Совместно с М. А. Шереужевым, А. В. Пешниным, Ф. В. Девяткиным. Правообладатель — МГТУ «СТАНКИН».", "en": "With M. A. Shereuzhev, A. V. Peshnin, F. V. Devyatkin. Rights holder: STANKIN."}
+    },
+    {
+      "cv": true,
+      "year": 2023,
+      "kind": {"ru": "Программа для ЭВМ RU 2023685496", "en": "Registered software RU 2023685496"},
+      "cv_kind": {"ru": "Программа для ЭВМ RU 2023685496", "en": "Registered software RU 2023685496"},
+      "title": {"ru": "Регулятор интенсивности освещения (LIV controller)", "en": "Lighting intensity controller (LIV controller)"},
+      "meta": {"ru": "Совместно с А. С. Героевым.", "en": "With A. S. Geroev."}
+    },
+    {
+      "cv": true,
+      "year": 2019,
+      "kind": {"ru": "Статья", "en": "Article"},
+      "cv_kind": {"ru": "Статья", "en": "Article"},
+      "title": {"ru": "Моделирование червеобразного движения робота-змеи с учётом динамики", "en": "Modeling the worm-like motion of a snake robot with dynamics"},
+      "meta": {"ru": "В. А. Польский, А. А. Лукин, М. Ю. Шевченко. Электронный научный журнал «E-Scio.ru».", "en": "V. A. Polsky, A. A. Lukin, M. Yu. Shevchenko. E-Scio.ru online journal (in Russian)."},
+      "cv_meta": {"ru": "E-Scio.ru.", "en": "E-Scio.ru (in Russian)."}
+    },
+    {
+      "cv": false,
+      "year": 2023,
+      "kind": {"ru": "Акселераторы", "en": "Accelerators"},
+      "title": {"ru": "Акселератор НТИ и «Физтех.Аэро»", "en": "NTI Accelerator and Phystech.Aero"},
+      "meta": {"ru": "В Акселераторе НТИ — проект энергосберегающего уличного светильника, который сам ориентирует солнечные модули. «Физтех.Аэро» — акселерационная программа МФТИ.", "en": "At the NTI Accelerator: an energy-saving street light that orients its own solar panels. Phystech.Aero is MIPT’s accelerator program."}
+    }
+  ],
+  "mentions": [
+    {
+      "url": "https://t.me/msutstankin/10004",
+      "text": {"ru": "Рассказал о работе Молодёжного проектного центра СТАНКИНа на форуме студенческих конструкторских бюро в МГТУ им. Н. Э. Баумана", "en": "Presented STANKIN’s Youth Project Center at the student design bureaus forum at Bauman University"},
+      "source": {"ru": "Telegram-канал МГТУ «СТАНКИН»", "en": "STANKIN Telegram channel"}
+    },
+    {
+      "url": "https://dpo.stankin.ru/programs/robots/",
+      "text": {"ru": "Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и применение»", "en": "Author of the professional training program “Industrial Manipulator Robots: Modern Technologies and Applications”"},
+      "source": {"ru": "Сайт ДПО МГТУ «СТАНКИН»", "en": "STANKIN professional education site"}
+    }
+  ]
+}
