@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>CV</title>
+<style>
+@font-face{font-family:"Onest";font-weight:100 900;src:url(../fonts/onest-cyrillic-wght-normal.woff2) format("woff2");unicode-range:U+0400-045F,U+0490-0491,U+2116}
+@font-face{font-family:"Onest";font-weight:100 900;src:url(../fonts/onest-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+2000-206F,U+2122,U+2212}
+@page{size:A4;margin:0}
+:root{--ink:#1B2430;--steel:#5F6B77;--rule:#D3D9DE;--safety:#F2B705;--link:#1F4E79}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:210mm;height:297mm;padding:14mm 16mm 12mm;font:400 9.4pt/1.42 "Onest",sans-serif;color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
+a{color:inherit;text-decoration:none}
+header{display:grid;grid-template-columns:1fr 34mm;gap:8mm;align-items:start;padding-bottom:6mm;border-bottom:1.4pt solid var(--ink)}
+h1{font-size:27pt;line-height:.95;letter-spacing:-.03em;font-weight:760;margin:0 0 3mm}
+.role{font-size:11.5pt;font-weight:550;margin:0 0 3.5mm}
+.contacts{display:flex;flex-wrap:wrap;gap:1mm 5mm;color:var(--steel);font-size:8.8pt}
+.contacts b{color:var(--ink);font-weight:550}
+.photo{width:34mm;height:42mm;border-radius:3mm;object-fit:cover;background:#ddd}
+.grid{display:grid;grid-template-columns:1fr 58mm;gap:9mm;margin-top:5mm}
+h2{font-size:8.2pt;font-weight:650;letter-spacing:.06em;color:var(--steel);margin:0 0 2.5mm;padding-bottom:1.2mm;border-bottom:.6pt solid var(--rule)}
+section{margin-bottom:4.6mm}
+p{margin:0 0 2mm}
+.item{margin-bottom:3mm}
+.item .t{font-weight:650}
+.item .s{color:var(--steel)}
+.item .y{float:right;color:var(--steel);font-variant-numeric:tabular-nums;margin-left:3mm}
+ul{margin:0;padding-left:3.6mm}
+li{margin:0 0 1mm}
+li::marker{color:var(--safety)}
+.tags{display:flex;flex-wrap:wrap;gap:1.2mm}
+.tags span{border:.6pt solid var(--rule);border-radius:1.4mm;padding:.5mm 1.8mm;font-size:8.4pt}
+.small{font-size:8.6pt}
+footer{position:absolute;left:16mm;right:16mm;bottom:9mm;display:flex;justify-content:space-between;color:var(--steel);font-size:7.8pt}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 data-ru>Максим Шевченко</h1><h1 data-en>Maksim Shevchenko</h1>
+    <p class="role" data-ru>Инженер-робототехник, преподаватель</p><p class="role" data-en>Robotics engineer and lecturer</p>
+    <div class="contacts">
+      <span><b>maksimshevchenko.ru</b></span>
+      <span>inbox@maksimshevchenko.ru</span>
+      <span>t.me/m_shevchenko</span>
+      <span>github.com/shevchenko-robotics</span>
+    </div>
+  </div>
+  <img class="photo" src="../photo.jpg" alt="">
+</header>
+
+<div class="grid">
+  <main>
+    <section>
+      <h2 data-ru>О СЕБЕ</h2><h2 data-en>PROFILE</h2>
+      <p data-ru>Больше одиннадцати лет в&nbsp;робототехнике и&nbsp;мехатронике: от&nbsp;исследований и&nbsp;разработок в&nbsp;космической робототехнике до&nbsp;промышленных и&nbsp;мобильных роботов в&nbsp;университетских лабораториях. Преподаю, руковожу студенческими проектами и&nbsp;выпускными работами, разрабатываю программы повышения квалификации для&nbsp;инженеров.</p>
+      <p data-en>Over eleven years in robotics and mechatronics, from space robotics R&amp;D to industrial and mobile robots in university labs. I teach, supervise student projects and theses, and develop professional training programs for engineers.</p>
+    </section>
+
+    <section>
+      <h2 data-ru>ОПЫТ</h2><h2 data-en>EXPERIENCE</h2>
+      <div class="item">
+        <div class="t" data-ru>МГТУ «СТАНКИН»</div><div class="t" data-en>Moscow State University of Technology “STANKIN”</div>
+        <ul data-ru>
+          <li>Преподавание дисциплин по&nbsp;робототехнике и&nbsp;мехатронике.</li>
+          <li>Научная работа в&nbsp;лаборатории робототехники: роботизированные комплексы, коллаборативные роботы, образовательная платформа по&nbsp;робототехнике.</li>
+          <li>Руководство студенческим бюро робототехники: команды, мобильные платформы, соревнования. Команда бюро — призёр инженерного хакатона РКК «Энергия».</li>
+          <li>Разработка программ повышения квалификации по&nbsp;промышленным роботам, беспилотным системам и&nbsp;ROS&nbsp;2.</li>
+        </ul>
+        <ul data-en>
+          <li>Teaching robotics and mechatronics courses.</li>
+          <li>Research in a robotics lab: robotic cells, collaborative robots, an online robotics education platform.</li>
+          <li>Leading the student robotics bureau: teams, mobile platforms, competitions. The bureau’s team placed at RSC Energia’s engineering hackathon.</li>
+          <li>Developing professional training programs on industrial robots, unmanned systems and ROS&nbsp;2.</li>
+        </ul>
+      </div>
+      <div class="item">
+        <div class="t" data-ru>МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана</div><div class="t" data-en>Bauman Moscow State Technical University</div>
+        <ul data-ru><li>Преподавание, руководство выпускными работами бакалавров.</li></ul>
+        <ul data-en><li>Teaching, supervising bachelor theses.</li></ul>
+      </div>
+      <div class="item">
+        <div class="t" data-ru>Преподавание за&nbsp;рубежом</div><div class="t" data-en>Teaching abroad</div>
+        <ul data-ru><li>Авторский курс по&nbsp;программированию и&nbsp;эксплуатации промышленных роботов на&nbsp;английском языке (ABB, FANUC, RobotStudio).</li></ul>
+        <ul data-en><li>Own English-taught course on programming and operating industrial robots (ABB, FANUC, RobotStudio).</li></ul>
+      </div>
+      <div class="item">
+        <div class="t" data-ru>РКК «Энергия»</div><div class="t" data-en>RSC Energia</div>
+        <ul data-ru><li>Исследования и&nbsp;разработки в&nbsp;области космической робототехники.</li></ul>
+        <ul data-en><li>R&amp;D in space robotics.</li></ul>
+      </div>
+    </section>
+
+    <section>
+      <h2 data-ru>ПАТЕНТЫ И&nbsp;ПУБЛИКАЦИИ</h2><h2 data-en>PATENTS AND PUBLICATIONS</h2>
+      <div class="item small"><span class="y">2026</span><span class="t" data-ru>Патент RU&nbsp;2869712&nbsp;C1.</span><span class="t" data-en>Patent RU&nbsp;2869712&nbsp;C1.</span> <span data-ru>Способ управления совместным движением гетерогенной многоагентной системой.</span><span data-en>Method for controlling the joint motion of a heterogeneous multi-agent system.</span></div>
+      <div class="item small"><span class="y">2025</span><span class="t" data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2025695805.</span><span class="t" data-en>Registered software RU&nbsp;2025695805.</span> <span data-ru>Модуль управления пользовательскими контейнерами для&nbsp;образовательной платформы по&nbsp;робототехнике.</span><span data-en>User container management module for a robotics education platform.</span></div>
+      <div class="item small"><span class="y">2023</span><span class="t" data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2023685496.</span><span class="t" data-en>Registered software RU&nbsp;2023685496.</span> <span data-ru>Регулятор интенсивности освещения (LIV controller).</span><span data-en>Lighting intensity controller (LIV controller).</span></div>
+      <div class="item small"><span class="y">2019</span><span class="t" data-ru>Статья.</span><span class="t" data-en>Article.</span> <span data-ru>Моделирование червеобразного движения робота-змеи с&nbsp;учётом динамики. E-Scio.ru.</span><span data-en>Modeling the worm-like motion of a snake robot with dynamics. E-Scio.ru (in Russian).</span></div>
+    </section>
+  </main>
+
+  <aside>
+    <section>
+      <h2 data-ru>ОБРАЗОВАНИЕ</h2><h2 data-en>EDUCATION</h2>
+      <div class="item small"><span class="y">2023</span><div class="t" data-ru>Аспирантура</div><div class="t" data-en>Postgraduate studies</div><div class="s" data-ru>МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана, «Машиностроение». Исследователь, преподаватель-исследователь</div><div class="s" data-en>Bauman University, Mechanical Engineering. Researcher, lecturer-researcher</div></div>
+      <div class="item small"><span class="y">2019</span><div class="t" data-ru>Магистратура, с&nbsp;отличием</div><div class="t" data-en>Master’s degree with honours</div><div class="s" data-ru>МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана, «Мехатроника и&nbsp;робототехника»</div><div class="s" data-en>Bauman University, Mechatronics and Robotics</div></div>
+      <div class="item small"><span class="y">2017</span><div class="t" data-ru>Бакалавриат, с&nbsp;отличием</div><div class="t" data-en>Bachelor’s degree with honours</div><div class="s" data-ru>МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана, «Мехатроника и&nbsp;робототехника»</div><div class="s" data-en>Bauman University, Mechatronics and Robotics</div></div>
+    </section>
+
+    <section>
+      <h2 data-ru>ИНСТРУМЕНТЫ</h2><h2 data-en>TOOLS</h2>
+      <div class="tags"><span>ROS&nbsp;2</span><span>MoveIt</span><span>Nav2</span><span>Gazebo</span><span>Python</span><span>C++</span><span>OpenCV</span><span>ABB RobotStudio</span><span>FANUC</span><span>KUKA</span></div>
+    </section>
+
+    <section>
+      <h2 data-ru>ПОВЫШЕНИЕ КВАЛИФИКАЦИИ</h2><h2 data-en>FURTHER TRAINING</h2>
+      <ul class="small" data-ru>
+        <li>Управление проектами по&nbsp;IPMA/СОВНЕТ (ICB4)</li>
+        <li>Управление высокотехнологичными проектами</li>
+        <li>Технологии «Фабрик будущего»</li>
+        <li>Коммерциализация научных проектов</li>
+        <li>Правовые основы работы с&nbsp;РИД, патентный практикум</li>
+        <li>Педагогическая деятельность</li>
+        <li>Акселератор НТИ, «Физтех.Аэро»</li>
+      </ul>
+      <ul class="small" data-en>
+        <li>Project management, IPMA ICB4</li>
+        <li>Managing high-tech projects</li>
+        <li>Factories of the Future technologies</li>
+        <li>Commercialising research</li>
+        <li>Intellectual property law, patent practice</li>
+        <li>Teaching in higher education</li>
+        <li>NTI Accelerator, Phystech.Aero</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 data-ru>ЯЗЫКИ</h2><h2 data-en>LANGUAGES</h2>
+      <p class="small" data-ru>Русский — родной<br>Английский — рабочий, преподаю на&nbsp;нём</p>
+      <p class="small" data-en>Russian — native<br>English — working proficiency, I teach in English</p>
+    </section>
+  </aside>
+</div>
+
+<footer><span data-ru>Актуальная версия: maksimshevchenko.ru</span><span data-en>Latest version: maksimshevchenko.ru/en/</span><span class="upd"></span></footer>
+</body>
+</html>

@@ -61,7 +61,6 @@ def seo_block(lang):
         "jobTitle": m["job"],
         "url": url,
         "image": SITE + "/photo.jpg",
-        "email": "mailto:inbox@maksimshevchenko.ru",
         "sameAs": ["https://github.com/shevchenko-robotics", "https://t.me/m_shevchenko"],
         "affiliation": [{"@type": "CollegeOrUniversity", "name": n} for n in m["orgs"]],
         "alumniOf": {"@type": "CollegeOrUniversity", "name": m["orgs"][0]},
@@ -84,6 +83,8 @@ def seo_block(lang):
         f'<meta property="og:locale" content="{m["locale"]}">',
         f'<meta property="og:locale:alternate" content="{META[other]["locale"]}">',
         '<meta name="twitter:card" content="summary_large_image">',
+        '<meta name="yandex-verification" content="43ca04fe0772f251">',
+        '<meta name="google-site-verification" content="JADMEylQvh-CYF1Jxu9lgDvbK0sg6NzI1zcbGTFCxfQ">',
         '<script type="application/ld+json">' + json.dumps(person, ensure_ascii=False) + "</script>",
     ]
     return "\n".join(tags)

@@ -155,7 +155,8 @@ html[lang="en"] [data-en]{display:revert!important}
       <div class="links">
         <a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>
         <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">GitHub</a>
-        <a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
+        <a data-ru href="/cv/shevchenko-cv-ru.pdf" download>Резюме (PDF)</a><a data-en href="/cv/shevchenko-cv-en.pdf" download>CV (PDF)</a>
+        <a class="em" data-e="ur.oknehcvehsmiskam@xobni" href="#contact">inbox<span aria-hidden="true"> [@] </span>maksimshevchenko.ru</a>
       </div>
     </div>
 
@@ -361,7 +362,7 @@ html[lang="en"] [data-en]{display:revert!important}
       <p class="contact-big"><a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">@m_shevchenko</a></p>
       <div class="contact-list">
         <span data-ru>Быстрее всего — в&nbsp;Telegram, или&nbsp;напишите на&nbsp;почту:</span><span data-en>Telegram is fastest, or send an email:</span>
-        <a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
+        <a class="em" data-e="ur.oknehcvehsmiskam@xobni" href="#contact">inbox<span aria-hidden="true"> [@] </span>maksimshevchenko.ru</a>
         <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">github.com/shevchenko-robotics</a>
       </div>
     </div>
@@ -373,6 +374,8 @@ html[lang="en"] [data-en]{display:revert!important}
 
 <script>
 (function(){
+  /* e-mail: assembled here so the address never appears in the HTML source */
+  document.querySelectorAll("a.em").forEach(function(a){var e=a.getAttribute("data-e").split("").reverse().join("");a.href="mailto:"+e;a.textContent=e});
   /* language is fixed per page (/ = Russian, /en/ = English); the build step strips the other language */
   document.getElementById("y").textContent=new Date().getFullYear();
 
