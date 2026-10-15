@@ -85,6 +85,7 @@ def seo_block(lang):
         '<meta name="twitter:card" content="summary_large_image">',
         '<meta name="yandex-verification" content="43ca04fe0772f251">',
         '<meta name="google-site-verification" content="JADMEylQvh-CYF1Jxu9lgDvbK0sg6NzI1zcbGTFCxfQ">',
+        '<meta name="google-site-verification" content="tU9a76zFFwpLHRhxzFcVc9oYLAnylqnFnk6rPxQiQa8">',
         '<script type="application/ld+json">' + json.dumps(person, ensure_ascii=False) + "</script>",
     ]
     return "\n".join(tags)
