@@ -61,6 +61,9 @@ h1 span{display:block}
 .kin button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
 .kin button:hover{color:var(--ink)}
 .kin button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.kin .sep{width:1px;background:var(--rule);margin:4px 2px}
+.kin .tog[aria-pressed="true"]{background:var(--bg);color:var(--ink);border-color:var(--steel)}
+.kin .tog[aria-pressed="false"]{opacity:.6}
 .kin button:focus-visible{outline:3px solid var(--safety);outline-offset:2px}
 .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .cell:focus-visible{outline:3px solid var(--safety);outline-offset:3px}
@@ -75,7 +78,7 @@ h1 span{display:block}
 @media (pointer:coarse){.touch-only{display:inline}.mouse-only{display:none}}
 
 /* teach pendant strip */
-.pendant{position:absolute;left:16px;right:140px;top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--steel)}
+.pendant{position:absolute;left:16px;right:190px;top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--steel)}
 .pendant .msg{padding:4px 4px}
 .pendant .msg.warn{color:#C2413A}
 .pendant button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:4px 10px;border-radius:8px;line-height:1.4}
@@ -234,6 +237,8 @@ html[lang="en"] [data-en]{display:revert!important}
         </g>
       </svg>
       <div class="kin" id="kin" role="group" aria-label="Тип кинематики / Kinematics">
+        <button type="button" id="gaugeBtn" class="tog" aria-pressed="true"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 21a10 10 0 0 1 20 0" stroke-width="2.4"/><path d="M16 21 L22 13" stroke-width="2.4"/><circle cx="16" cy="21" r="2.2" fill="currentColor" stroke="none"/><path d="M6 21h2.5M23.5 21H26" stroke-width="2"/></svg></button>
+        <span class="sep" aria-hidden="true"></span>
         <button type="button" data-kin="serial" aria-pressed="true"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 29h12" stroke-width="2.4"/><path d="M13 27 L10 14 L21 8 L26 12" stroke-width="3.2"/><circle cx="13" cy="27" r="2.2" fill="currentColor" stroke="none"/><circle cx="10" cy="14" r="2" fill="currentColor" stroke="none"/><circle cx="21" cy="8" r="2" fill="currentColor" stroke="none"/></svg></button>
         <button type="button" data-kin="pallet" aria-pressed="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 29h12" stroke-width="2.4"/><path d="M11 26 L13 11 L27 13" stroke-width="3"/><path d="M11 26 L7 24.5 L9 9.5 L13 11" stroke-width="1.6"/><path d="M27 13 V19 M24 19 H30" stroke-width="2.2"/></svg></button>
         <button type="button" data-kin="fivebar" aria-pressed="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 29h26" stroke-width="2.4"/><path d="M10 26 L5 15 L16 7 L27 15 L22 26" stroke-width="2.6"/><circle cx="10" cy="26" r="2.2" fill="currentColor" stroke="none"/><circle cx="22" cy="26" r="2.2" fill="currentColor" stroke="none"/><circle cx="16" cy="7" r="2.2" fill="currentColor" stroke="none"/></svg></button>
@@ -593,8 +598,8 @@ html[lang="en"] [data-en]{display:revert!important}
         return p.tcp;
       };
     };
-    M.gaugeR=[29,37];
-    M.gauges=function(){return [{c:B,ref:0},{c:B,ref:0}]};
+    M.gaugeR=[37,28];
+    M.gauges=function(){return [{c:B,ref:0},{c:B,ref:Math.PI}]}; /* J2 is read on the crank: it points opposite the forearm */
     M.status=function(q){
       var r=q[0]-q[1];
       if(r-REL[0]<1.5*D)return T("параллелограмм сложен до упора","parallelogram folded to its stop");
@@ -751,7 +756,13 @@ html[lang="en"] [data-en]{display:revert!important}
   /* ---------- joint gauges: a dial around each drive with green / yellow / red zones and a pointer ---------- */
   function zoneMargins(i){var r=M.LIM[i][1]-M.LIM[i][0];return {red:Math.max(4*D,.05*r),yel:Math.max(12*D,.15*r)}}
   function zoneOf(i,v){var m=zoneMargins(i),d=Math.min(v-M.LIM[i][0],M.LIM[i][1]-v);return d<m.red?"r":d<m.red+m.yel?"y":"g"}
-  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[];
+  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[],showGauges=true;
+  try{showGauges=localStorage.getItem("gauges")!=="off"}catch(_){}
+  function setGauges(on){
+    showGauges=on;try{localStorage.setItem("gauges",on?"on":"off")}catch(_){}
+    gauges.forEach(function(G){G.g.style.display=on?"":"none"});
+    var b=$("gaugeBtn");b.setAttribute("aria-pressed",String(on));
+  }
   function arcD(r,a0,a1){
     var x0=r*Math.cos(a0),y0=-r*Math.sin(a0),x1=r*Math.cos(a1),y1=-r*Math.sin(a1);
     return "M"+x0.toFixed(2)+" "+y0.toFixed(2)+"A"+r+" "+r+" 0 "+(a1-a0>Math.PI?1:0)+" 0 "+x1.toFixed(2)+" "+y1.toFixed(2);
@@ -760,11 +771,16 @@ html[lang="en"] [data-en]{display:revert!important}
     gauges=[];
     for(var i=0;i<M.n;i++){
       var r=M.gaugeR[i],lo=M.LIM[i][0],hi=M.LIM[i][1],m=zoneMargins(i),grp=mk("g",{"class":"gauge"},g);
-      [[lo,lo+m.red,"r"],[lo+m.red,lo+m.red+m.yel,"y"],[lo+m.red+m.yel,hi-m.red-m.yel,"g"],[hi-m.red-m.yel,hi-m.red,"y"],[hi-m.red,hi,"r"]].forEach(function(z){
-        mk("path",{d:arcD(r,z[0],z[1]),stroke:ZC[z[2]],"stroke-width":4,"stroke-linecap":"butt",fill:"none",opacity:.85},grp);
+      var gap=1.2*D/Math.max(1,r/20);
+      [[lo,lo+m.red,"r",.9],[lo+m.red,lo+m.red+m.yel,"y",.9],[lo+m.red+m.yel,hi-m.red-m.yel,"g",.45],[hi-m.red-m.yel,hi-m.red,"y",.9],[hi-m.red,hi,"r",.9]].forEach(function(z,k){
+        mk("path",{d:arcD(r,z[0]+(k?gap:0),z[1]-(k<4?gap:0)),stroke:ZC[z[2]],"stroke-width":3,"stroke-linecap":"butt",fill:"none",opacity:z[3]},grp);
       });
-      var nd=mk("path",{d:"M"+(r+9)+" 0L"+(r-5)+" -4L"+(r-5)+" 4Z",fill:ZC.g,stroke:"var(--ink)","stroke-width":1.4,"stroke-linejoin":"round"},grp);
+      [lo,hi].forEach(function(a){ /* end stops */
+        mk("line",{x1:((r-3.5)*Math.cos(a)).toFixed(2),y1:(-(r-3.5)*Math.sin(a)).toFixed(2),x2:((r+3.5)*Math.cos(a)).toFixed(2),y2:(-(r+3.5)*Math.sin(a)).toFixed(2),stroke:"var(--ink)","stroke-width":1.6,"stroke-linecap":"round"},grp);
+      });
+      var nd=mk("path",{d:"M"+(r+8)+" 0L"+(r-4)+" -3.6Q"+(r-6)+" 0 "+(r-4)+" 3.6Z",fill:ZC.g,stroke:"var(--ink)","stroke-width":1.3,"stroke-linejoin":"round"},grp);
       gauges.push({g:grp,needle:nd});
+      if(!showGauges)grp.style.display="none";
     }
   }
   function drawGauges(){
@@ -918,6 +934,8 @@ html[lang="en"] [data-en]{display:revert!important}
     b.addEventListener("click",function(e){e.stopPropagation();if(M.id!==b.dataset.kin){setModel(b.dataset.kin,true);say(M.title.ru,M.title.en)}});
   });
   $("kin").addEventListener("pointerdown",function(e){e.stopPropagation()});
+  (function(){var b=$("gaugeBtn"),t=T("Шкалы углов в шарнирах","Joint angle dials");b.title=t;b.setAttribute("aria-label",t);b.setAttribute("aria-pressed",String(showGauges));
+    b.addEventListener("click",function(e){e.stopPropagation();setGauges(!showGauges)})})();
 
   /* ---------- input ---------- */
   function toSvg(e){var p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
