@@ -143,6 +143,44 @@ h2{font-size:22px;font-weight:650;letter-spacing:-.01em;margin:0;line-height:1.3
 
 footer{padding:40px 0 56px;color:var(--steel);font-size:14px;border-top:1px solid var(--rule)}
 
+.courses{display:grid;gap:26px;max-width:64ch}
+.courses h3{font-size:17px;font-weight:650;margin:0 0 6px}
+.courses p{margin:0;color:var(--steel)}
+.courses .lead-s{margin-bottom:6px}
+.courses ul{margin:0;padding-left:1.1em;color:var(--steel)}
+.courses li{padding:2px 0}
+.courses a{color:var(--ink)}
+.faq{border-top:1px solid var(--rule);padding:10px 0;max-width:62ch}
+.faq:last-of-type{border-bottom:1px solid var(--rule);margin-bottom:1em}
+.faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--steel);font-weight:400;transition:transform .2s}
+.faq[open] summary::after{transform:rotate(45deg)}
+.faq p{margin:8px 0 0;color:var(--steel)}
+
+/* print: the page becomes a tidy one-column CV */
+@media print{
+  @page{margin:14mm 16mm}
+  :root{--bg:#fff;--panel:#fff;--ink:#000;--steel:#333;--rule:#bbb;--link:#000}
+  body{font-size:10.5pt;line-height:1.45;background:#fff}
+  .wrap{max-width:none;padding:0}
+  header .lang,.cell,.links,#students,#mentions,footer,.kin{display:none!important}
+  .hero{display:block;padding:0 0 8mm}
+  h1{font-size:28pt;margin:0 0 3mm}
+  .intro{max-width:none;margin:0}
+  section{display:block;padding:3.5mm 0}
+  h2{font-size:12pt;margin:0 0 2mm;break-after:avoid}
+  .chain li,.records li,.courses>div,.kit>div{break-inside:avoid}
+  .chain li{padding-bottom:3mm}
+  .prose p{margin:0 0 1.5mm}
+  .portrait{display:none}
+  .side{display:block}
+  .kit{grid-template-columns:repeat(3,1fr);gap:4mm}
+  a{text-decoration:none}
+  .faq{display:none}
+  #contact .contact-big{font-size:14pt}
+}
+
 [data-en]{display:none!important}
 html[lang="en"] [data-ru]{display:none!important}
 html[lang="en"] [data-en]{display:revert!important}
@@ -290,6 +328,33 @@ html[lang="en"] [data-en]{display:revert!important}
 </div>
 </div>
 </section>
+<section id="courses">
+<h2><span>Курсы и программы</span></h2>
+<div class="courses">
+<div>
+<h3><span>Повышение квалификации</span></h3>
+<p class="lead-s">Программы для инженеров, которые разработал в МГТУ «СТАНКИН»:</p>
+
+<ul>
+<li><a href="https://dpo.stankin.ru/programs/robots/" rel="noopener" target="_blank">Промышленные манипуляционные роботы: современные технологии и применение</a></li>
+<li>Интеллектуальные системы в промышленной робототехнике</li>
+<li>Беспилотные авиационные системы</li>
+<li>Основы ROS 2</li>
+</ul>
+
+</div>
+<div>
+<h3><span>Курс на английском</span></h3>
+<p>«Programming and Operation of Industrial Robots» — программирование и эксплуатация промышленных роботов ABB и FANUC, офлайн-программирование в RobotStudio. Читаю за рубежом.</p>
+
+</div>
+<div>
+<h3><span>Видеокурс</span></h3>
+<p>Видеокурс по промышленной робототехнике: какие бывают роботы, где их применяют, как устроены отраслевые проекты мировых и российских производителей.</p>
+
+</div>
+</div>
+</section>
 <section id="works">
 <h2><span>Патенты и публикации</span></h2>
 <ul class="records">
@@ -343,6 +408,9 @@ html[lang="en"] [data-en]{display:revert!important}
 <li>космическая робототехника.</li>
 </ul>
 <p>С каждым дипломником встречаемся раз в неделю. Все материалы работы студент ведёт в репозитории на GitHub по <a href="https://github.com/shevchenko-robotics/diploma-template" rel="noopener" target="_blank">шаблону</a>, готовые работы собраны в <a href="https://github.com/vkr-robotics" rel="noopener" target="_blank">vkr-robotics</a>.</p>
+<details class="faq"><summary>Как выбрать тему?</summary><p>Можно взять одну из тем выше или предложить свою. Тему уточняем на первой встрече: чтобы она была интересна вам и выполнима за отведённое время.</p></details>
+<details class="faq"><summary>Что подготовить к первой встрече?</summary><p>Пару слов о себе: что уже делали, какие языки и инструменты знаете, что хочется попробовать. Если есть аккаунт на GitHub, пришлите ссылку.</p></details>
+<details class="faq"><summary>Как устроена работа?</summary><p>Раз в неделю встречаемся, обсуждаем сделанное и ставим задачи на следующую неделю. Код, расчёты, черновики и заметки — в репозитории по шаблону, так прогресс виден обоим.</p></details>
 <p>Если хотите писать диплом со мной, напишите в <a href="https://t.me/m_shevchenko" rel="noopener" target="_blank">Telegram</a>: кто вы, где учитесь и какая тема вам интересна. Свою тему тоже можно предложить.</p>
 </div>
 
