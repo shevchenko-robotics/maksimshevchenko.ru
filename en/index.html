@@ -253,7 +253,7 @@ html[lang="en"] [data-en]{display:revert!important}
 </g>
 </svg>
 <div aria-label="Тип кинематики / Kinematics" class="kin" id="kin" role="group">
-<button aria-pressed="true" class="tog" id="gaugeBtn" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M6 21a10 10 0 0 1 20 0" stroke-width="2.4"></path><path d="M16 21 L22 13" stroke-width="2.4"></path><circle cx="16" cy="21" fill="currentColor" r="2.2" stroke="none"></circle><path d="M6 21h2.5M23.5 21H26" stroke-width="2"></path></svg></button>
+<button aria-pressed="false" class="tog" id="gaugeBtn" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M6 21a10 10 0 0 1 20 0" stroke-width="2.4"></path><path d="M16 21 L22 13" stroke-width="2.4"></path><circle cx="16" cy="21" fill="currentColor" r="2.2" stroke="none"></circle><path d="M6 21h2.5M23.5 21H26" stroke-width="2"></path></svg></button>
 <span aria-hidden="true" class="sep"></span>
 <button aria-pressed="true" data-kin="serial" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M7 29h12" stroke-width="2.4"></path><path d="M13 27 L10 14 L21 8 L26 12" stroke-width="3.2"></path><circle cx="13" cy="27" fill="currentColor" r="2.2" stroke="none"></circle><circle cx="10" cy="14" fill="currentColor" r="2" stroke="none"></circle><circle cx="21" cy="8" fill="currentColor" r="2" stroke="none"></circle></svg></button>
 <button aria-pressed="false" data-kin="pallet" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M5 29h12" stroke-width="2.4"></path><path d="M11 26 L13 11 L27 13" stroke-width="3"></path><path d="M11 26 L7 24.5 L9 9.5 L13 11" stroke-width="1.6"></path><path d="M27 13 V19 M24 19 H30" stroke-width="2.2"></path></svg></button>
@@ -783,8 +783,8 @@ html[lang="en"] [data-en]{display:revert!important}
   /* ---------- joint gauges: a dial around each drive with green / yellow / red zones and a pointer ---------- */
   function zoneMargins(i){var r=M.LIM[i][1]-M.LIM[i][0];return {red:Math.max(4*D,.05*r),yel:Math.max(12*D,.15*r)}}
   function zoneOf(i,v){var m=zoneMargins(i),d=Math.min(v-M.LIM[i][0],M.LIM[i][1]-v);return d<m.red?"r":d<m.red+m.yel?"y":"g"}
-  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[],showGauges=true;
-  try{showGauges=localStorage.getItem("gauges")!=="off"}catch(_){}
+  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[],showGauges=false; /* off by default; on only after the visitor turns them on */
+  try{showGauges=localStorage.getItem("gauges")==="on"}catch(_){}
   function setGauges(on){
     showGauges=on;try{localStorage.setItem("gauges",on?"on":"off")}catch(_){}
     gauges.forEach(function(G){G.g.style.display=on?"":"none"});
