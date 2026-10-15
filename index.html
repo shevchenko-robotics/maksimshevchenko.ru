@@ -184,28 +184,21 @@ html[lang="en"] [data-en]{display:revert!important}
           <rect id="noreach" x="0" y="0" width="520" height="520" fill="url(#hatch)" mask="url(#nrMask)" opacity="0"/>
           <text id="singTxt" x="260" y="463" text-anchor="middle" font-size="13" fill="#C2413A" stroke="none" font-family="inherit"></text>
           <line x1="40" x2="480" y1="440" y2="440" stroke="var(--steel)" stroke-width="2"/>
-          <path d="M230 440 L238 400 L282 400 L290 440 Z" fill="var(--ink)"/>
+          <path d="M226 440 L232 418 Q234 412 240 412 L280 412 Q286 412 288 418 L294 440 Z" fill="var(--ink)"/>
+          <rect x="238" y="404" width="44" height="6" rx="3" fill="var(--steel)"/>
           <g id="path"></g>
           <g id="trail" stroke="var(--link)" stroke-linecap="round"></g>
           <g id="wps"></g>
           <g id="target" stroke="var(--steel)" stroke-width="1.5" opacity="0">
             <circle r="9"/><line x1="-16" x2="-5"/><line x1="5" x2="16"/><line y1="-16" y2="-5"/><line y1="5" y2="16"/>
           </g>
-          <line id="l1" stroke="var(--ink)" stroke-width="26" stroke-linecap="round"/>
-          <line id="l2" stroke="var(--ink)" stroke-width="20" stroke-linecap="round"/>
-          <line id="l3" stroke="var(--ink)" stroke-width="14" stroke-linecap="round"/>
-          <g id="grip" stroke="var(--ink)" stroke-width="6" stroke-linecap="round">
-            <line x1="0" y1="-12" x2="0" y2="12"/><line x1="0" y1="-12" x2="16" y2="-12"/><line x1="0" y1="12" x2="16" y2="12"/>
-          </g>
-          <circle id="j1" r="12" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
-          <circle id="j2" r="10" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
-          <circle id="j3" r="8" fill="var(--safety)" stroke="var(--ink)" stroke-width="3"/>
+          <g id="armg"></g>
         </g>
       </svg>
       <div class="pendant" id="pendant">
         <span class="msg" id="msg">
-          <span data-ru><span class="mouse-only">Ведите курсором — манипулятор следует. Щелчок ставит точку программы.</span><span class="touch-only">Касание ставит точку программы</span></span>
-          <span data-en><span class="mouse-only">Move the cursor and the arm follows. Click to add a program point.</span><span class="touch-only">Tap to add a program point</span></span>
+          <span data-ru><span class="mouse-only">Ведите курсором — манипулятор следует. Щелчок ставит точку программы.</span><span class="touch-only">Ведите пальцем — манипулятор следует. Короткое касание ставит точку.</span></span>
+          <span data-en><span class="mouse-only">Move the cursor and the arm follows. Click to add a program point.</span><span class="touch-only">Drag to steer the arm. A short tap adds a program point.</span></span>
         </span>
         <span class="ctl">
           <span class="seg" role="group" aria-label="Тип движения">
@@ -409,14 +402,16 @@ html[lang="en"] [data-en]{display:revert!important}
   document.getElementById("y").textContent=new Date().getFullYear();
 
   /* robot arm: planar 3-link manipulator with joint limits and self-collision.
-     Base frame is at J1; 1 svg unit = 4 mm; Y points up. IK: damped least squares in joint space. */
+     Base frame is at J1; 1 svg unit = 4 mm; Y points up. IK: damped least squares in joint space,
+     actual joints follow the IK solution with a speed limit, like real drives. */
   var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
   var D=Math.PI/180;
-  var L=[115,85,40],RAD=[13,10,7],GRIP=16,base={x:260,y:400},FLOOR_Y=440,MM=4;
+  var L=[115,85,40],RAD=[13,10,8],base={x:260,y:400},FLOOR_Y=440,MM=4;
   var LIM=[[20*D,160*D],[-130*D,130*D],[-120*D,120*D]];
-  var BASE_SEG=[{x:240,y:422},{x:280,y:422}],BASE_R=18;
-  var q=[100*D,-35*D,-60*D],P=[],G={x:0,y:0};
+  var BASE_SEG=[{x:236,y:424},{x:284,y:424}],BASE_R=16;
+  var VMAX=2.4; /* rad/s per joint */
+  var q=[100*D,-35*D,-60*D],qd=q.slice(),P=[];
   var goal={x:340,y:260},cur={x:340,y:260},lastMove=-1e9;
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var lang=function(){return document.documentElement.lang==="en"?"en":"ru"};
@@ -425,10 +420,8 @@ html[lang="en"] [data-en]{display:revert!important}
   function fkInto(qq,out){
     var a=qq[0],x=base.x,y=base.y;out[0]={x:x,y:y};
     for(var i=0;i<3;i++){if(i)a+=qq[i];x+=L[i]*Math.cos(a);y-=L[i]*Math.sin(a);out[i+1]={x:x,y:y}}
-    out.g={x:x+GRIP*Math.cos(a),y:y-GRIP*Math.sin(a)};
     return out;
   }
-  function fk(){fkInto(q,P);G=P.g}
   function segDist(a,b,c,d){
     function pd(p,s,e){var vx=e.x-s.x,vy=e.y-s.y,l=vx*vx+vy*vy,t=l?((p.x-s.x)*vx+(p.y-s.y)*vy)/l:0;t=t<0?0:t>1?1:t;var dx=s.x+t*vx-p.x,dy=s.y+t*vy-p.y;return Math.sqrt(dx*dx+dy*dy)}
     function cr(o,p,r){return (p.x-o.x)*(r.y-o.y)-(p.y-o.y)*(r.x-o.x)}
@@ -437,40 +430,48 @@ html[lang="en"] [data-en]{display:revert!important}
     return Math.min(pd(a,c,d),pd(b,c,d),pd(c,a,b),pd(d,a,b));
   }
   var tmp=[];
-  /* why a configuration is not allowed: 0 = ok, 1 = joint limit, 2 = floor, 3 = self-collision, 4 = base */
+  /* 0 = ok, 1 = joint limit, 2 = floor, 3 = self-collision, 4 = base */
   function check(qq){
     for(var i=0;i<3;i++)if(qq[i]<LIM[i][0]-1e-9||qq[i]>LIM[i][1]+1e-9)return 1;
     var p=fkInto(qq,tmp);
-    if(p[1].y>FLOOR_Y-RAD[0]||p[2].y>FLOOR_Y-RAD[1]||p[3].y>FLOOR_Y-RAD[2]||p.g.y>FLOOR_Y-4)return 2;
-    if(segDist(p[0],p[1],p[2],p.g)<RAD[0]+RAD[2]+3)return 3;
-    if(segDist(p[1],p[2],BASE_SEG[0],BASE_SEG[1])<RAD[1]+BASE_R||segDist(p[2],p.g,BASE_SEG[0],BASE_SEG[1])<RAD[2]+BASE_R)return 4;
+    if(p[1].y>FLOOR_Y-RAD[0]||p[2].y>FLOOR_Y-RAD[1]||p[3].y>FLOOR_Y-6)return 2;
+    if(segDist(p[0],p[1],p[2],p[3])<RAD[0]+RAD[2]+3)return 3;
+    if(segDist(p[1],p[2],BASE_SEG[0],BASE_SEG[1])<RAD[1]+BASE_R||segDist(p[2],p[3],BASE_SEG[0],BASE_SEG[1])<RAD[2]+BASE_R)return 4;
     return 0;
   }
   function clampQ(qq){for(var i=0;i<3;i++)qq[i]=Math.max(LIM[i][0],Math.min(LIM[i][1],qq[i]));return qq}
 
-  /* one DLS pass towards target t (svg coords); returns remaining error */
-  function ik(t,iters){
-    var lam2=64,e=0;
+  /* DLS iterations on configuration v towards target t (svg coords); returns {q, err} */
+  function ikFrom(v,t,iters){
+    var lam2=64,e=0;v=v.slice();
     for(var k=0;k<iters;k++){
-      fkInto(q,tmp);
+      fkInto(v,tmp);
       var ex=t.x-tmp[3].x,ey=-(t.y-tmp[3].y);e=Math.sqrt(ex*ex+ey*ey);
       if(e<.25)break;
-      var a=[q[0],q[0]+q[1],q[0]+q[1]+q[2]],J=[[0,0],[0,0],[0,0]];
+      var a=[v[0],v[0]+v[1],v[0]+v[1]+v[2]],J=[[0,0],[0,0],[0,0]];
       for(var i=0;i<3;i++)for(var j=i;j<3;j++){J[i][0]+=-L[j]*Math.sin(a[j]);J[i][1]+=L[j]*Math.cos(a[j])}
-      var A=lam2,B=0,C=0,Dd=lam2;
-      for(i=0;i<3;i++){A+=J[i][0]*J[i][0];B+=J[i][0]*J[i][1];Dd+=J[i][1]*J[i][1]}C=B;
-      var det=A*Dd-B*C,ux=(Dd*ex-B*ey)/det,uy=(-C*ex+A*ey)/det;
+      var A=lam2,B=0,Dd=lam2;
+      for(i=0;i<3;i++){A+=J[i][0]*J[i][0];B+=J[i][0]*J[i][1];Dd+=J[i][1]*J[i][1]}
+      var det=A*Dd-B*B,ux=(Dd*ex-B*ey)/det,uy=(-B*ex+A*ey)/det;
       var dq=[0,0,0],m=0;
       for(i=0;i<3;i++){dq[i]=J[i][0]*ux+J[i][1]*uy;m=Math.max(m,Math.abs(dq[i]))}
-      if(m>.12)for(i=0;i<3;i++)dq[i]*=.12/m;
+      if(m>.06)for(i=0;i<3;i++)dq[i]*=.06/m;
       var ok=false;
       for(var s=1;s>.1&&!ok;s*=.5){
-        var nq=clampQ([q[0]+dq[0]*s,q[1]+dq[1]*s,q[2]+dq[2]*s]);
-        if(!check(nq)){q=nq;ok=true}
+        var nq=clampQ([v[0]+dq[0]*s,v[1]+dq[1]*s,v[2]+dq[2]*s]);
+        if(!check(nq)){v=nq;ok=true}
       }
       if(!ok)break;
     }
-    return e;
+    fkInto(v,tmp);
+    return {q:v,err:Math.hypot(t.x-tmp[3].x,t.y-tmp[3].y)};
+  }
+  /* move actual joints towards a desired configuration with a speed limit */
+  function drive(target,dt){
+    if(reduce){if(!check(target))q=target.slice();return}
+    var step=VMAX*dt,nq=q.slice();
+    for(var i=0;i<3;i++){var d=target[i]-q[i];nq[i]=q[i]+Math.max(-step,Math.min(step,d))}
+    if(!check(nq))q=nq;
   }
 
   /* ---------- reachable workspace with limits and collisions ---------- */
@@ -486,16 +487,15 @@ html[lang="en"] [data-en]{display:revert!important}
     for(var b=LIM[1][0];b<=LIM[1][1]+1e-9;b+=s2)for(var c=LIM[2][0];c<=LIM[2][1]+1e-9;c+=s3){
       qq[0]=Math.PI/2;qq[1]=b;qq[2]=c;
       fkInto(qq,tmp);
-      if(segDist(tmp[0],tmp[1],tmp[2],tmp.g)<RAD[0]+RAD[2]+3)continue; /* self-collision does not depend on J1 */
+      if(segDist(tmp[0],tmp[1],tmp[2],tmp[3])<RAD[0]+RAD[2]+3)continue;
       var score=Math.abs(b)*.6+Math.abs(c);
       for(var a=LIM[0][0];a<=LIM[0][1]+1e-9;a+=s1){
-        qq[0]=a;var r=check(qq);if(r)continue;
-        var p=tmp[3],k=cellOf(p);if(k<0)continue;
+        qq[0]=a;if(check(qq))continue;
+        var k=cellOf(tmp[3]);if(k<0)continue;
         hit[k]=1;
         if(score<best[k]){best[k]=score;conf[k*3]=a;conf[k*3+1]=b;conf[k*3+2]=c}
       }
     }
-    /* close tiny sampling gaps: a cell is reachable if it was hit, or if most of its neighbours were */
     var out=new Uint8Array(n);
     for(var y=1;y<GW-1;y++)for(var x=1;x<GW-1;x++){
       var i=y*GW+x;if(hit[i]){out[i]=1;continue}
@@ -503,10 +503,9 @@ html[lang="en"] [data-en]{display:revert!important}
       if(s>=5){out[i]=1;var src=hit[i-1]?i-1:hit[i+1]?i+1:hit[i-GW]?i-GW:i+GW;conf[i*3]=conf[src*3];conf[i*3+1]=conf[src*3+1];conf[i*3+2]=conf[src*3+2]}
     }
     reach=out;cfg=conf;
-    /* paint the unreachable area as a mask for the hatch */
     var cv=document.createElement("canvas");cv.width=GW;cv.height=GW;
     var cx=cv.getContext("2d"),img=cx.createImageData(GW,GW);
-    for(i=0;i<n;i++){var v=reach[i]?0:255;img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=255;img.data[i*4+3]=v}
+    for(i=0;i<n;i++){img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=255;img.data[i*4+3]=reach[i]?0:255}
     cx.putImageData(img,0,0);
     var big=document.createElement("canvas");big.width=big.height=520;
     var bx=big.getContext("2d");bx.imageSmoothingEnabled=true;
@@ -517,8 +516,8 @@ html[lang="en"] [data-en]{display:revert!important}
   }
   function cellCfg(p){var c=cellOf(p);return (c>=0&&reach&&reach[c])?[cfg[c*3],cfg[c*3+1],cfg[c*3+2]]:null}
 
-  /* joint-space glide (used by MoveJ and to escape local minima) */
-  function pathFree(q0,q1){for(var s=1;s<=12;s++){var t=s/12;if(check([q0[0]+(q1[0]-q0[0])*t,q0[1]+(q1[1]-q0[1])*t,q0[2]+(q1[2]-q0[2])*t]))return false}return true}
+  /* joint-space moves for MoveJ */
+  function pathFree(q0,q1){for(var s=1;s<=16;s++){var t=s/16;if(check([q0[0]+(q1[0]-q0[0])*t,q0[1]+(q1[1]-q0[1])*t,q0[2]+(q1[2]-q0[2])*t]))return false}return true}
   var HOME=[90*D,-20*D,-40*D];
   function planJoint(target){
     var start=q.slice();
@@ -526,26 +525,89 @@ html[lang="en"] [data-en]{display:revert!important}
     if(pathFree(start,HOME)&&pathFree(HOME,target))return [HOME.slice(),target];
     return [target];
   }
-  function refine(p,q0){var save=q;q=q0.slice();ik(p,60);var r=q;q=save;return r}
+
+  /* ---------- appearance: topology-optimised links ---------- */
+  function rpath(pts,r){ /* closed polygon with rounded corners */
+    var n=pts.length,d="";
+    for(var i=0;i<n;i++){
+      var p0=pts[(i-1+n)%n],p1=pts[i],p2=pts[(i+1)%n];
+      var v1x=p0[0]-p1[0],v1y=p0[1]-p1[1],v2x=p2[0]-p1[0],v2y=p2[1]-p1[1];
+      var l1=Math.hypot(v1x,v1y),l2=Math.hypot(v2x,v2y),rr=Math.min(r,l1*.45,l2*.45);
+      var a=[p1[0]+v1x/l1*rr,p1[1]+v1y/l1*rr],b=[p1[0]+v2x/l2*rr,p1[1]+v2y/l2*rr];
+      d+=(i?"L":"M")+a[0].toFixed(1)+" "+a[1].toFixed(1)+"Q"+p1[0].toFixed(1)+" "+p1[1].toFixed(1)+" "+b[0].toFixed(1)+" "+b[1].toFixed(1);
+    }
+    return d+"Z";
+  }
+  function inset(tri,t){ /* shrink a triangle towards its incentre by t */
+    var A=tri[0],B=tri[1],C=tri[2],a=Math.hypot(B[0]-C[0],B[1]-C[1]),b=Math.hypot(A[0]-C[0],A[1]-C[1]),c=Math.hypot(A[0]-B[0],A[1]-B[1]);
+    var p=a+b+c,ix=(a*A[0]+b*B[0]+c*C[0])/p,iy=(a*A[1]+b*B[1]+c*C[1])/p;
+    var s=(p/2),area=Math.abs((B[0]-A[0])*(C[1]-A[1])-(C[0]-A[0])*(B[1]-A[1]))/2,r=area/s;
+    if(r<=t+1)return null;var k=(r-t)/r;
+    return tri.map(function(P){return [ix+(P[0]-ix)*k,iy+(P[1]-iy)*k]});
+  }
+  /* link outline from joint (0,0) radius r0 to joint (len,0) radius r1, with a slim waist and Warren-truss cut-outs */
+  function linkShape(len,r0,r1,waist,panels,wall,web){
+    var N=24,top=[],bot=[];
+    function h(x){var t=x/len;return r0+(r1-r0)*t-waist*Math.sin(Math.PI*t)}
+    for(var i=0;i<=N;i++){var x=len*i/N;top.push([x,-h(x)]);bot.push([x,h(x)])}
+    var d="M"+top[0][0]+" "+top[0][1];
+    for(i=1;i<=N;i++)d+="L"+top[i][0].toFixed(1)+" "+top[i][1].toFixed(1);
+    d+="A"+r1+" "+r1+" 0 0 1 "+len+" "+r1;
+    for(i=N-1;i>=0;i--)d+="L"+bot[i][0].toFixed(1)+" "+bot[i][1].toFixed(1);
+    d+="A"+r0+" "+r0+" 0 0 1 0 "+(-r0)+"Z";
+    if(panels>0){
+      var x0=r0+5,x1=len-r1-5,nodes=[];
+      for(i=0;i<=panels;i++){var x=x0+(x1-x0)*i/panels,hh=h(x)-wall;nodes.push([x,i%2?hh:-hh])}
+      for(i=0;i<panels-1;i++){
+        var tri=inset([nodes[i],nodes[i+1],nodes[i+2]],web/2);
+        if(tri)d+=rpath(tri,3.5);
+      }
+    }
+    return d;
+  }
+  function mk(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);(parent||$("armg")).appendChild(e);return e}
+  var G={};
+  (function build(){
+    var g=$("armg");
+    /* counterweight sits behind link 1 (it is mounted in another plane) */
+    G.cw=mk("g",{});
+    mk("path",{d:rpath([[-6,-15],[-40,-13],[-40,13],[-6,15]],7),fill:"var(--steel)"},G.cw);
+    mk("path",{d:linkShape(L[0],17,12,3.5,5,4.2,5),fill:"var(--ink)","fill-rule":"evenodd"},G.l1=mk("g",{}));
+    mk("path",{d:linkShape(L[1],12,9,2.5,4,3.6,4.5),fill:"var(--ink)","fill-rule":"evenodd"},G.l2=mk("g",{}));
+    G.l3=mk("g",{});
+    mk("path",{d:linkShape(L[2]-20,9,7,1,0,0,0),fill:"var(--ink)"},G.l3);
+    /* parallel gripper: body + two fingers, TCP between the fingertips */
+    mk("path",{d:rpath([[L[2]-24,-12],[L[2]-12,-12],[L[2]-12,12],[L[2]-24,12]],3),fill:"var(--ink)"},G.l3);
+    mk("path",{d:rpath([[L[2]-13,-11],[L[2]+2,-9],[L[2]+2,-5],[L[2]-13,-5]],1.5),fill:"var(--ink)"},G.l3);
+    mk("path",{d:rpath([[L[2]-13,11],[L[2]+2,9],[L[2]+2,5],[L[2]-13,5]],1.5),fill:"var(--ink)"},G.l3);
+    /* drive housings: dark ring + safety-yellow cap */
+    [[20,11],[14,7.5],[10,5.5]].forEach(function(r,i){
+      var j=mk("g",{});G["h"+i]=j;
+      mk("circle",{r:r[0],fill:"var(--ink)"},j);
+      mk("circle",{id:"j"+(i+1),r:r[1],fill:"var(--safety)"},j);
+      mk("circle",{r:Math.max(1.6,r[1]*.28),fill:"var(--ink)"},j);
+    });
+  })();
+  function place(e,p,ang){e.setAttribute("transform","translate("+p.x.toFixed(2)+" "+p.y.toFixed(2)+") rotate("+ang.toFixed(2)+")")}
 
   /* ---------- drawing ---------- */
-  var RED="#C2413A";
+  var RED="#C2413A",blocked=false,reconf=null,stillSince=0;
   function draw(){
-    fk();
-    [["l1",0],["l2",1],["l3",2]].forEach(function(s){var e=$(s[0]),a=P[s[1]],b=P[s[1]+1];e.setAttribute("x1",a.x);e.setAttribute("y1",a.y);e.setAttribute("x2",b.x);e.setAttribute("y2",b.y)});
-    var a3=-(q[0]+q[1]+q[2])/D;
-    $("grip").setAttribute("transform","translate("+P[3].x+" "+P[3].y+") rotate("+a3+")");
+    fkInto(q,P);
+    var a1=-q[0]/D,a2=-(q[0]+q[1])/D,a3=-(q[0]+q[1]+q[2])/D;
+    place(G.cw,P[1],a2);place(G.l1,P[0],a1);place(G.l2,P[1],a2);place(G.l3,P[2],a3);
+    place(G.h0,P[0],0);place(G.h1,P[1],0);place(G.h2,P[2],0);
     var status="";
     for(var i=0;i<3;i++){
-      var j=$("j"+(i+1)),deg=q[i]/D,atLim=Math.min(q[i]-LIM[i][0],LIM[i][1]-q[i])<1.5*D;
-      j.setAttribute("cx",P[i].x);j.setAttribute("cy",P[i].y);
-      j.setAttribute("fill",atLim?RED:"var(--safety)");
-      var b=$("a"+(i+1));b.textContent=Math.round(deg)+"°";b.style.color=atLim?RED:"";
+      var atLim=Math.min(q[i]-LIM[i][0],LIM[i][1]-q[i])<1.5*D;
+      $("j"+(i+1)).setAttribute("fill",atLim?RED:"var(--safety)");
+      var b=$("a"+(i+1));b.textContent=Math.round(q[i]/D)+"°";b.style.color=atLim?RED:"";
       if(atLim&&!status)status=lang()==="en"?"J"+(i+1)+" at its limit":"J"+(i+1)+" на упоре";
     }
     $("tx").textContent=Math.round((P[3].x-base.x)*MM);
     $("ty").textContent=Math.round((base.y-P[3].y)*MM);
     if(Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D)status=lang()==="en"?"singularity: arm fully stretched":"сингулярность: рука вытянута";
+    if(reconf)status=lang()==="en"?"changing arm configuration to reach the point":"меняю конфигурацию, чтобы дотянуться";
     if(blocked&&!status)status=lang()==="en"?"the arm cannot reach this point":"манипулятор не дотягивается до этой точки";
     var st=$("singTxt");if(st.textContent!==status)st.textContent=status;
   }
@@ -570,7 +632,7 @@ html[lang="en"] [data-en]{display:revert!important}
   }
 
   /* ---------- teach mode ---------- */
-  var wps=[],MAXP=8,moveType="J",running=false,seg=null,msgTimer=0,glide=null,stuck=0,blocked=false;
+  var wps=[],MAXP=8,moveType="J",running=false,seg=null,msgTimer=0;
   var msgDefault=$("msg").innerHTML;
   function say(ru,en,warn){
     var m=$("msg");clearTimeout(msgTimer);
@@ -601,8 +663,8 @@ html[lang="en"] [data-en]{display:revert!important}
     if(running)return;
     if(!reachable(p)){flagBad(true);say("Точка вне зоны досягаемости","This point is out of reach",true);return}
     if(wps.length>=MAXP){say("Не больше "+MAXP+" точек","Up to "+MAXP+" points",true);return}
-    var c=cellCfg(p)||q.slice();
-    wps.push({x:p.x,y:p.y,q:refine(p,c)});renderWps();
+    var r=ikFrom(cellCfg(p)||q,p,120);
+    wps.push({x:p.x,y:p.y,q:r.q});renderWps();
   }
   function flagBad(b){$("target").classList.toggle("bad",b)}
   function setRunning(on){
@@ -610,37 +672,30 @@ html[lang="en"] [data-en]{display:revert!important}
     $("run").setAttribute("aria-pressed",String(running));
     $("run").querySelector("[data-ru]").textContent=running?"Стоп":"Пуск";
     $("run").querySelector("[data-en]").textContent=running?"Stop":"Run";
-    seg=null;glide=null;
-    if(running){nextSeg(0)}else{fk();cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y}}
-  }
-  function makeGlide(target){
-    var legs=planJoint(target),from=q.slice(),list=[];
-    legs.forEach(function(to){
-      var m=0;for(var i=0;i<3;i++)m=Math.max(m,Math.abs(to[i]-from[i]));
-      list.push({a:from,b:to,dur:Math.max(.45,m/1.5)});from=to;
-    });
-    return {legs:list,i:0,t:0};
-  }
-  function stepGlide(g,dt){
-    var leg=g.legs[g.i];leg.t=(leg.t||0)+dt/leg.dur;var t=Math.min(1,leg.t),e=ease(t);
-    var nq=[0,1,2].map(function(k){return leg.a[k]+(leg.b[k]-leg.a[k])*e});
-    if(!check(nq))q=nq;
-    if(t>=1){g.i++;}
-    return g.i>=g.legs.length;
+    seg=null;
+    if(running){nextSeg(0)}else{fkInto(q,P);qd=q.slice();cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y}}
   }
   function nextSeg(i){
-    i=i%wps.length;var to=wps[i];
-    var s={i:i,type:moveType,from:(fk(),{x:P[3].x,y:P[3].y}),to:to,t:0,warned:false};
-    if(moveType==="J"){s.glide=makeGlide(to.q)}
-    else s.dur=Math.max(.5,Math.hypot(to.x-s.from.x,to.y-s.from.y)/170);
+    i=i%wps.length;var to=wps[i];fkInto(q,P);
+    var s={i:i,type:moveType,from:{x:P[3].x,y:P[3].y},to:to,t:0,warned:false};
+    if(moveType==="J"){
+      var from=q.slice();s.legs=planJoint(to.q).map(function(b){var a=from,m=0;for(var k=0;k<3;k++)m=Math.max(m,Math.abs(b[k]-a[k]));from=b;return {a:a,b:b,dur:Math.max(.5,m/1.3),t:0}});s.leg=0;
+    }else{s.dur=Math.max(.6,Math.hypot(to.x-s.from.x,to.y-s.from.y)/150);s.qv=q.slice()}
     seg=s;
   }
   function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
   function stepProgram(dt){
-    if(seg.type==="J"){if(stepGlide(seg.glide,dt))nextSeg(seg.i+1);return}
-    seg.t=Math.min(1,seg.t+dt/seg.dur);var e=ease(seg.t);
-    var err=ik({x:seg.from.x+(seg.to.x-seg.from.x)*e,y:seg.from.y+(seg.to.y-seg.from.y)*e},40);
-    if(err>3&&!seg.warned){seg.warned=true;say("MoveL: прямая проходит через недостижимую зону","MoveL: the straight line crosses an unreachable area",true)}
+    if(seg.type==="J"){
+      var leg=seg.legs[seg.leg];leg.t=Math.min(1,leg.t+dt/leg.dur);var e=ease(leg.t);
+      var nq=[0,1,2].map(function(k){return leg.a[k]+(leg.b[k]-leg.a[k])*e});
+      if(!check(nq))q=nq;
+      if(leg.t>=1){if(++seg.leg>=seg.legs.length)nextSeg(seg.i+1)}
+      return;
+    }
+    seg.t=Math.min(1,seg.t+dt/seg.dur);var e2=ease(seg.t);
+    var r=ikFrom(q,{x:seg.from.x+(seg.to.x-seg.from.x)*e2,y:seg.from.y+(seg.to.y-seg.from.y)*e2},30);
+    drive(r.q,dt);
+    if(r.err>3&&!seg.warned){seg.warned=true;say("MoveL: прямая проходит через недостижимую зону","MoveL: the straight line crosses an unreachable area",true)}
     if(seg.t>=1)nextSeg(seg.i+1);
   }
 
@@ -655,45 +710,75 @@ html[lang="en"] [data-en]{display:revert!important}
   $("clear").addEventListener("click",function(e){e.stopPropagation();setRunning(false);wps=[];renderWps()});
   $("pendant").addEventListener("pointerdown",function(e){e.stopPropagation()});
 
+  /* ---------- input: hover/drag steers the arm, a short tap or click adds a point ---------- */
   function toSvg(e){var pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
   function showTarget(p){var tg=$("target");tg.setAttribute("transform","translate("+p.x+" "+p.y+")");tg.setAttribute("opacity","1")}
   function inPanel(p){return {x:Math.max(0,Math.min(520,p.x)),y:Math.max(0,Math.min(520,p.y))}}
-  hero.addEventListener("pointermove",function(e){
-    var p=toSvg(e);lastMove=performance.now();inside=e.pointerType==="mouse";showTarget(p);
+  var inside=false,press=null;
+  function steer(e){
+    var p=toSvg(e);lastMove=performance.now();showTarget(p);
     var inCell=e.target.closest&&e.target.closest("#cell");
     flagBad(!!inCell&&!reachable(p));
-    if(!running)goal=inPanel(p);
+    if(!running){var g=inPanel(p);if(Math.hypot(g.x-goal.x,g.y-goal.y)>2){stillSince=performance.now();reconf=null}goal=g}
+    return p;
+  }
+  hero.addEventListener("pointerenter",function(e){if(e.pointerType==="mouse")inside=true});
+  hero.addEventListener("pointerleave",function(e){inside=false;if(e.pointerType==="mouse"){$("target").setAttribute("opacity","0");flagBad(false)}});
+  hero.addEventListener("pointermove",function(e){
+    if(e.pointerType!=="mouse"&&!press)return;
+    var p=steer(e);
+    if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>10)press.drag=true;
   });
-  var inside=false;
-  hero.addEventListener("pointerenter",function(){inside=true});
-  hero.addEventListener("pointerleave",function(){inside=false;$("target").setAttribute("opacity","0");flagBad(false)});
   cell.addEventListener("pointerdown",function(e){
-    var p=toSvg(e);lastMove=performance.now();showTarget(p);
-    if(!running)goal=inPanel(p);
-    addPoint(p);
+    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false};
+    try{cell.setPointerCapture(e.pointerId)}catch(_){}
+    steer(e);
   });
+  function release(e){
+    if(!press)return;
+    var tap=!press.drag&&performance.now()-press.t<450;press=null;
+    if(tap&&e.type==="pointerup")addPoint(toSvg(e));
+    lastMove=performance.now();
+  }
+  cell.addEventListener("pointerup",release);
+  cell.addEventListener("pointercancel",release);
 
-  draw();
+  /* ---------- main loop ---------- */
+  fkInto(q,P);draw();
   setTimeout(buildWorkspace,30);
-  var t0=performance.now(),prev=t0;
+  var t0=performance.now(),prev=t0,idle=null;
   (function tick(now){
     var dt=Math.min(.05,(now-prev)/1000);prev=now;
     if(running){blocked=false;stepProgram(dt)}
-    else if(glide){if(stepGlide(glide,dt))glide=null}
     else{
-      if(!reduce&&!inside&&now-lastMove>2500&&!wps.length){
-        $("target").setAttribute("opacity","0");
-        var s=(now-t0)/1000;
-        goal={x:base.x+150*Math.sin(s*.45),y:250+70*Math.sin(s*.9+1)};
-      }
-      var k=reduce?1:.14;
+      /* demo motion only after a long pause, fading in from where the arm is */
+      var quiet=!inside&&!press&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
+      if(quiet){
+        if(!idle){idle={t:now,from:{x:goal.x,y:goal.y}};$("target").setAttribute("opacity","0");flagBad(false)}
+        var s=(now-t0)/1000,w=Math.min(1,(now-idle.t)/3000);w=w*w*(3-2*w);
+        var c={x:base.x+150*Math.sin(s*.4),y:250+60*Math.sin(s*.8+1)};
+        goal={x:idle.from.x+(c.x-idle.from.x)*w,y:idle.from.y+(c.y-idle.from.y)*w};
+      }else idle=null;
+      var k=reduce?1:.12;
       cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
-      var err=ik(cur,reduce?80:10);
-      /* stuck in a local minimum although the point is reachable: glide there in joint space */
-      if(err>4&&reachable(cur)){
-        if(++stuck>18){var c=cellCfg(cur);if(c){glide=makeGlide(refine(cur,c))}stuck=0}
-      }else stuck=0;
-      blocked=err>6&&!reachable(goal);
+      if(reconf){
+        /* slow joint-space move into another configuration, leg by leg */
+        var tg=reconf.legs[0];
+        var save=VMAX;VMAX=1.2;drive(tg,dt);VMAX=save;
+        var dmax=Math.max(Math.abs(tg[0]-q[0]),Math.abs(tg[1]-q[1]),Math.abs(tg[2]-q[2]));
+        if(dmax<.01){reconf.legs.shift();if(!reconf.legs.length){reconf=null;qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y}}}
+        else if(++reconf.frames>600)reconf=null;
+        blocked=false;
+      }else{
+        var r=ikFrom(qd,cur,reduce?120:12);qd=r.q;
+        drive(qd,dt);
+        blocked=r.err>6&&!reachable(goal);
+        /* the point is reachable, but not from this pose: once the pointer rests, change pose slowly */
+        if(r.err>4&&reachable(goal)&&!idle&&now-stillSince>700&&Math.hypot(cur.x-goal.x,cur.y-goal.y)<2){
+          var c=cellCfg(goal);
+          if(c){var sol=ikFrom(c,goal,150);if(sol.err<2){reconf={legs:planJoint(sol.q),frames:0}}}
+        }
+      }
     }
     draw();drawTrail(now);
     requestAnimationFrame(tick);
