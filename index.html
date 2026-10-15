@@ -570,10 +570,13 @@ html[lang="en"] [data-en]{display:revert!important}
   (function build(){
     var g=$("armg");
     /* counterweight sits behind link 1 (it is mounted in another plane) */
+    /* counterweight: a tail of link 2 behind the elbow, ending in a round weight */
     G.cw=mk("g",{});
-    mk("path",{d:rpath([[-6,-15],[-40,-13],[-40,13],[-6,15]],7),fill:"var(--steel)"},G.cw);
     mk("path",{d:linkShape(L[0],17,12,3.5,5,4.2,5),fill:"var(--ink)","fill-rule":"evenodd"},G.l1=mk("g",{}));
-    mk("path",{d:linkShape(L[1],12,9,2.5,4,3.6,4.5),fill:"var(--ink)","fill-rule":"evenodd"},G.l2=mk("g",{}));
+    G.l2=mk("g",{});
+    mk("path",{d:"M-4 -10 C-12 -9 -16 -7 -21 -7.5 L-21 7.5 C-16 7 -12 9 -4 10 Z",fill:"var(--ink)"},G.l2);
+    mk("path",{d:"M-29 -12 a12 12 0 1 0 0.01 0 Z M-29 -4.5 a4.5 4.5 0 1 1 -0.01 0 Z",fill:"var(--ink)","fill-rule":"evenodd"},G.l2);
+    mk("path",{d:linkShape(L[1],12,9,2.5,4,3.6,4.5),fill:"var(--ink)","fill-rule":"evenodd"},G.l2);
     G.l3=mk("g",{});
     mk("path",{d:linkShape(L[2]-20,9,7,1,0,0,0),fill:"var(--ink)"},G.l3);
     /* parallel gripper: body + two fingers, TCP between the fingertips */
