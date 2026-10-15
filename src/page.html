@@ -24,11 +24,13 @@
   --rule:#C3CBD2;
   --safety:#F2B705;   /* industrial safety yellow, used only for joints and focus */
   --link:#1F4E79;
+  --z-g:#2E9E5B;--z-y:#E3A500;--z-r:#C9302C;
   --font:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#161B21; --panel:#1E252D; --ink:#E4E8EC; --steel:#94A1AD; --rule:#2E3741; --link:#9CC3EA;
+    --z-g:#4CC283; --z-y:#F2B705; --z-r:#EF5B55;
   }
 }
 *{box-sizing:border-box}
@@ -536,6 +538,8 @@ html[lang="en"] [data-en]{display:revert!important}
         return P[3];
       };
     };
+    M.gaugeR=[27,21,16];
+    M.gauges=function(q){var P=fk(q,[]);return [{c:P[0],ref:0},{c:P[1],ref:q[0]},{c:P[2],ref:q[0]+q[1]}]};
     M.status=function(q){return Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D?T("сингулярность: рука вытянута","singularity: arm fully stretched"):""};
     return M;
   })();
@@ -589,6 +593,8 @@ html[lang="en"] [data-en]{display:revert!important}
         return p.tcp;
       };
     };
+    M.gaugeR=[29,37];
+    M.gauges=function(){return [{c:B,ref:0},{c:B,ref:0}]};
     M.status=function(q){
       var r=q[0]-q[1];
       if(r-REL[0]<1.5*D)return T("параллелограмм сложен до упора","parallelogram folded to its stop");
@@ -645,6 +651,8 @@ html[lang="en"] [data-en]{display:revert!important}
         return s.p;
       };
     };
+    M.gaugeR=[26,26];
+    M.gauges=function(){return [{c:A,ref:0},{c:Bp,ref:0}]};
     M.status=function(q){
       var s=pts(q);if(!s)return "";
       if(s.h<HMIN*1.35)return T("рядом сингулярность второго рода: звенья почти на одной линии","near a type II singularity: distal links almost aligned");
@@ -740,18 +748,47 @@ html[lang="en"] [data-en]{display:revert!important}
     return [target];
   }
 
+  /* ---------- joint gauges: a dial around each drive with green / yellow / red zones and a pointer ---------- */
+  function zoneMargins(i){var r=M.LIM[i][1]-M.LIM[i][0];return {red:Math.max(4*D,.05*r),yel:Math.max(12*D,.15*r)}}
+  function zoneOf(i,v){var m=zoneMargins(i),d=Math.min(v-M.LIM[i][0],M.LIM[i][1]-v);return d<m.red?"r":d<m.red+m.yel?"y":"g"}
+  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[];
+  function arcD(r,a0,a1){
+    var x0=r*Math.cos(a0),y0=-r*Math.sin(a0),x1=r*Math.cos(a1),y1=-r*Math.sin(a1);
+    return "M"+x0.toFixed(2)+" "+y0.toFixed(2)+"A"+r+" "+r+" 0 "+(a1-a0>Math.PI?1:0)+" 0 "+x1.toFixed(2)+" "+y1.toFixed(2);
+  }
+  function buildGauges(g){
+    gauges=[];
+    for(var i=0;i<M.n;i++){
+      var r=M.gaugeR[i],lo=M.LIM[i][0],hi=M.LIM[i][1],m=zoneMargins(i),grp=mk("g",{"class":"gauge"},g);
+      [[lo,lo+m.red,"r"],[lo+m.red,lo+m.red+m.yel,"y"],[lo+m.red+m.yel,hi-m.red-m.yel,"g"],[hi-m.red-m.yel,hi-m.red,"y"],[hi-m.red,hi,"r"]].forEach(function(z){
+        mk("path",{d:arcD(r,z[0],z[1]),stroke:ZC[z[2]],"stroke-width":4,"stroke-linecap":"butt",fill:"none",opacity:.85},grp);
+      });
+      var nd=mk("path",{d:"M"+(r+9)+" 0L"+(r-5)+" -4L"+(r-5)+" 4Z",fill:ZC.g,stroke:"var(--ink)","stroke-width":1.4,"stroke-linejoin":"round"},grp);
+      gauges.push({g:grp,needle:nd});
+    }
+  }
+  function drawGauges(){
+    var gs=M.gauges(q);
+    for(var i=0;i<gauges.length;i++){
+      var G=gauges[i],c=gs[i].c,z=zoneOf(i,q[i]);
+      G.g.setAttribute("transform","translate("+c.x.toFixed(2)+" "+c.y.toFixed(2)+") rotate("+(-gs[i].ref/D).toFixed(2)+")");
+      G.needle.setAttribute("transform","rotate("+(-q[i]/D).toFixed(2)+")");
+      if(G.z!==z){G.needle.setAttribute("fill",ZC[z]);G.z=z}
+    }
+  }
+
   /* ---------- drawing ---------- */
   var blocked=false,reconf=null,stillSince=0,idle=null;
   function draw(){
-    var p=drawModel(q);if(p)TCP=p;
+    var p=drawModel(q);if(p)TCP=p;drawGauges();
     var status="";
     for(var i=0;i<3;i++){
       var b=$("a"+(i+1)),wrap=b.parentNode;
       if(i>=M.n){wrap.style.display="none";continue}
       wrap.style.display="";
-      var atLim=Math.min(q[i]-M.LIM[i][0],M.LIM[i][1]-q[i])<1.5*D,cap=$("j"+(i+1));
-      if(cap)cap.setAttribute("fill",atLim?RED:"var(--safety)");
-      b.textContent=Math.round(q[i]/D)+"°";b.style.color=atLim?RED:"";
+      var atLim=Math.min(q[i]-M.LIM[i][0],M.LIM[i][1]-q[i])<1.5*D,cap=$("j"+(i+1)),z=zoneOf(i,q[i]);
+      if(cap)cap.setAttribute("fill",ZC[z]);
+      b.textContent=Math.round(q[i]/D)+"°";b.style.color=z==="g"?"":ZC[z];
       if(atLim&&!status)status=T("J"+(i+1)+" на упоре","J"+(i+1)+" at its limit");
     }
     $("tx").textContent=Math.round((TCP.x-ORIGIN.x)*MM);
@@ -867,7 +904,7 @@ html[lang="en"] [data-en]{display:revert!important}
       M=MODELS[id];buildToken++;q=M.q0.slice();qd=q.slice();
       setRunning(false);wps=[];renderWps();reconf=null;idle=null;demo=null;blocked=false;trail=[];
       reach=null;reachList=[];$("noreach").setAttribute("opacity","0");
-      g.innerHTML="";drawModel=M.build(g);
+      g.innerHTML="";drawModel=M.build(g);buildGauges(g);
       q=M.q0.slice();qd=q.slice();draw();cur=pt(TCP.x,TCP.y);goal=pt(TCP.x,TCP.y);
       document.querySelectorAll("[data-kin]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.kin===id))});
       svg.setAttribute("aria-label",T(M.title.ru,M.title.en));
