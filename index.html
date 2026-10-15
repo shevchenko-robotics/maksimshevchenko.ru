@@ -20,7 +20,9 @@
 <meta content="ru_RU" property="og:locale"/>
 <meta content="en_US" property="og:locale:alternate"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Person", "name": "Максим Шевченко", "alternateName": ["Шевченко Максим Юрьевич", "Maksim Shevchenko"], "jobTitle": "Инженер-робототехник, преподаватель", "url": "https://maksimshevchenko.ru/", "image": "https://maksimshevchenko.ru/photo.jpg", "email": "mailto:inbox@maksimshevchenko.ru", "sameAs": ["https://github.com/shevchenko-robotics", "https://t.me/m_shevchenko"], "affiliation": [{"@type": "CollegeOrUniversity", "name": "МГТУ им. Н. Э. Баумана"}, {"@type": "CollegeOrUniversity", "name": "МГТУ «СТАНКИН»"}], "alumniOf": {"@type": "CollegeOrUniversity", "name": "МГТУ им. Н. Э. Баумана"}, "knowsAbout": ["Робототехника", "Промышленные роботы", "Мобильные роботы", "ROS 2", "Космическая робототехника", "Инженерное образование"]}</script>
+<meta content="43ca04fe0772f251" name="yandex-verification"/>
+<meta content="JADMEylQvh-CYF1Jxu9lgDvbK0sg6NzI1zcbGTFCxfQ" name="google-site-verification"/>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Person", "name": "Максим Шевченко", "alternateName": ["Шевченко Максим Юрьевич", "Maksim Shevchenko"], "jobTitle": "Инженер-робототехник, преподаватель", "url": "https://maksimshevchenko.ru/", "image": "https://maksimshevchenko.ru/photo.jpg", "sameAs": ["https://github.com/shevchenko-robotics", "https://t.me/m_shevchenko"], "affiliation": [{"@type": "CollegeOrUniversity", "name": "МГТУ им. Н. Э. Баумана"}, {"@type": "CollegeOrUniversity", "name": "МГТУ «СТАНКИН»"}], "alumniOf": {"@type": "CollegeOrUniversity", "name": "МГТУ им. Н. Э. Баумана"}, "knowsAbout": ["Робототехника", "Промышленные роботы", "Мобильные роботы", "ROS 2", "Космическая робототехника", "Инженерное образование"]}</script>
 <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
 <link href="/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/apple-touch-icon.png" rel="apple-touch-icon"/>
@@ -170,7 +172,8 @@ html[lang="en"] [data-en]{display:revert!important}
 <div class="links">
 <a href="https://t.me/m_shevchenko" rel="noopener" target="_blank">Telegram</a>
 <a href="https://github.com/shevchenko-robotics" rel="me noopener" target="_blank">GitHub</a>
-<a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
+<a download="" href="/cv/shevchenko-cv-ru.pdf">Резюме (PDF)</a>
+<a class="em" data-e="ur.oknehcvehsmiskam@xobni" href="#contact">inbox<span aria-hidden="true"> [@] </span>maksimshevchenko.ru</a>
 </div>
 </div>
 <div class="cell" id="cell">
@@ -352,7 +355,7 @@ html[lang="en"] [data-en]{display:revert!important}
 <p class="contact-big"><a href="https://t.me/m_shevchenko" rel="noopener" target="_blank">@m_shevchenko</a></p>
 <div class="contact-list">
 <span>Быстрее всего — в Telegram, или напишите на почту:</span>
-<a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
+<a class="em" data-e="ur.oknehcvehsmiskam@xobni" href="#contact">inbox<span aria-hidden="true"> [@] </span>maksimshevchenko.ru</a>
 <a href="https://github.com/shevchenko-robotics" rel="me noopener" target="_blank">github.com/shevchenko-robotics</a>
 </div>
 </div>
@@ -362,6 +365,8 @@ html[lang="en"] [data-en]{display:revert!important}
 </div>
 <script>
 (function(){
+  /* e-mail: assembled here so the address never appears in the HTML source */
+  document.querySelectorAll("a.em").forEach(function(a){var e=a.getAttribute("data-e").split("").reverse().join("");a.href="mailto:"+e;a.textContent=e});
   /* language is fixed per page (/ = Russian, /en/ = English); the build step strips the other language */
   document.getElementById("y").textContent=new Date().getFullYear();
 
