@@ -1,0 +1,40 @@
+name: Проверка ссылок
+
+on:
+  schedule:
+    - cron: "17 6 1 * *"   # 1-го числа каждого месяца, 09:17 по Москве
+  workflow_dispatch:        # можно запустить вручную во вкладке Actions
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Проверить ссылки на страницах сайта
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --max-retries 3
+            --timeout 30
+            --accept 200,206,429
+            --exclude-path src
+            --exclude "^mailto:"
+            --exclude "maksimshevchenko\.ru"
+            index.html en/index.html 404.html
+          fail: false
+          output: lychee/out.md
+
+      - name: Завести задачу, если есть битые ссылки
+        if: steps.lychee.outputs.exit_code != 0
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: Битые ссылки на сайте
+          content-filepath: lychee/out.md
+          labels: ссылки

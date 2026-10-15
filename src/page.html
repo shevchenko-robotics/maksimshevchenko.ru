@@ -54,6 +54,8 @@ h1 span{display:block}
 .links{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:17px;font-weight:550}
 .links a{color:var(--ink)}
 
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cell:focus-visible{outline:3px solid var(--safety);outline-offset:3px}
 .cell{position:relative;background:var(--panel);border-radius:20px;aspect-ratio:1/1;max-height:560px;width:100%;overflow:hidden;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
 .cell svg{display:block;width:100%;height:100%}
 .cell .bad{stroke:#C2413A}
@@ -160,7 +162,8 @@ html[lang="en"] [data-en]{display:revert!important}
       </div>
     </div>
 
-    <div class="cell" id="cell">
+    <div class="cell" id="cell" tabindex="0" aria-describedby="kbdHelp">
+      <p id="kbdHelp" class="sr-only"><span data-ru>Управление с клавиатуры: стрелки двигают схват, с Shift быстрее, Enter ставит точку программы, Esc сбрасывает программу.</span><span data-en>Keyboard: arrow keys move the gripper, hold Shift to move faster, Enter adds a program point, Esc clears the program.</span></p>
       <svg id="arm" viewBox="0 0 520 520" role="img" aria-label="Робот-манипулятор следует за курсором">
         <g fill="none">
           <defs>
@@ -273,43 +276,7 @@ html[lang="en"] [data-en]{display:revert!important}
 
   <section id="works">
     <h2><span data-ru>Патенты и&nbsp;публикации</span><span data-en>Patents and publications</span></h2>
-    <ul class="records">
-      <li>
-        <span class="kind"><span data-ru>Патент на&nbsp;изобретение RU&nbsp;2869712&nbsp;C1, 2026</span><span data-en>Russian patent RU&nbsp;2869712&nbsp;C1, 2026</span></span>
-        <div class="title" data-ru>Способ управления совместным движением гетерогенной многоагентной системой</div>
-        <div class="title" data-en>Method for controlling the joint motion of a heterogeneous multi-agent system</div>
-        <div class="meta" data-ru>Совместно с&nbsp;А.&nbsp;В.&nbsp;Пешниным, М.&nbsp;А.&nbsp;Гридневым, М.&nbsp;А.&nbsp;Шереужевым. Патентообладатель — МГТУ «СТАНКИН».</div>
-        <div class="meta" data-en>With A.&nbsp;V.&nbsp;Peshnin, M.&nbsp;A.&nbsp;Gridnev, M.&nbsp;A.&nbsp;Shereuzhev. Patent holder: STANKIN.</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2025695805, 2025</span><span data-en>Registered software RU&nbsp;2025695805, 2025</span></span>
-        <div class="title" data-ru>Модуль управления пользовательскими контейнерами для&nbsp;образовательной платформы по&nbsp;робототехнике (серверная часть)</div>
-        <div class="title" data-en>User container management module for a robotics education platform (server side)</div>
-        <div class="meta" data-ru>Совместно с&nbsp;М.&nbsp;А.&nbsp;Шереужевым, А.&nbsp;В.&nbsp;Пешниным, Ф.&nbsp;В.&nbsp;Девяткиным. Правообладатель — МГТУ «СТАНКИН».</div>
-        <div class="meta" data-en>With M.&nbsp;A.&nbsp;Shereuzhev, A.&nbsp;V.&nbsp;Peshnin, F.&nbsp;V.&nbsp;Devyatkin. Rights holder: STANKIN.</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2023685496, 2023</span><span data-en>Registered software RU&nbsp;2023685496, 2023</span></span>
-        <div class="title" data-ru>Регулятор интенсивности освещения (LIV controller)</div>
-        <div class="title" data-en>Lighting intensity controller (LIV controller)</div>
-        <div class="meta" data-ru>Совместно с&nbsp;А.&nbsp;С.&nbsp;Героевым.</div>
-        <div class="meta" data-en>With A.&nbsp;S.&nbsp;Geroev.</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Статья, 2019</span><span data-en>Article, 2019</span></span>
-        <div class="title" data-ru>Моделирование червеобразного движения робота-змеи с&nbsp;учётом динамики</div>
-        <div class="title" data-en>Modeling the worm-like motion of a snake robot with dynamics</div>
-        <div class="meta" data-ru>В.&nbsp;А.&nbsp;Польский, А.&nbsp;А.&nbsp;Лукин, М.&nbsp;Ю.&nbsp;Шевченко. Электронный научный журнал «E-Scio.ru».</div>
-        <div class="meta" data-en>V.&nbsp;A.&nbsp;Polsky, A.&nbsp;A.&nbsp;Lukin, M.&nbsp;Yu.&nbsp;Shevchenko. E-Scio.ru online journal (in Russian).</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Акселераторы, 2023</span><span data-en>Accelerators, 2023</span></span>
-        <div class="title" data-ru>Акселератор НТИ и&nbsp;«Физтех.Аэро»</div>
-        <div class="title" data-en>NTI Accelerator and Phystech.Aero</div>
-        <div class="meta" data-ru>В&nbsp;Акселераторе НТИ — проект энергосберегающего уличного светильника, который сам ориентирует солнечные модули. «Физтех.Аэро» — акселерационная программа МФТИ.</div>
-        <div class="meta" data-en>At the NTI Accelerator: an energy-saving street light that orients its own solar panels. Phystech.Aero is MIPT’s accelerator program.</div>
-      </li>
-    </ul>
+    <!--RECORDS-->
   </section>
 
   <section id="students">
@@ -344,16 +311,7 @@ html[lang="en"] [data-en]{display:revert!important}
 
   <section id="mentions">
     <h2><span data-ru>Упоминания</span><span data-en>Mentions</span></h2>
-    <ul class="mentions">
-      <li>
-        <a href="https://t.me/msutstankin/10004" target="_blank" rel="noopener"><span data-ru>Рассказал о&nbsp;работе Молодёжного проектного центра СТАНКИНа на&nbsp;форуме студенческих конструкторских бюро в&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана</span><span data-en>Presented STANKIN’s Youth Project Center at the student design bureaus forum at Bauman University</span></a>
-        <span class="src"><span data-ru>Telegram-канал МГТУ «СТАНКИН»</span><span data-en>STANKIN Telegram channel</span></span>
-      </li>
-      <li>
-        <a href="https://dpo.stankin.ru/programs/robots/" target="_blank" rel="noopener"><span data-ru>Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и&nbsp;применение»</span><span data-en>Author of the professional training program “Industrial Manipulator Robots: Modern Technologies and Applications”</span></a>
-        <span class="src"><span data-ru>Сайт ДПО МГТУ «СТАНКИН»</span><span data-en>STANKIN professional education site</span></span>
-      </li>
-    </ul>
+    <!--MENTIONS-->
   </section>
 
   <section id="contact">
@@ -388,7 +346,7 @@ html[lang="en"] [data-en]{display:revert!important}
   var L=[115,85,40],RAD=[13,10,8],base={x:260,y:400},FLOOR_Y=440,MM=4;
   var LIM=[[20*D,160*D],[-130*D,130*D],[-120*D,120*D]];
   var BASE_SEG=[{x:236,y:424},{x:284,y:424}],BASE_R=16;
-  var VMAX=2.4; /* rad/s per joint */
+  var VMAX=1.3; /* rad/s per joint (manual control and MoveL) */
   var q=[100*D,-35*D,-60*D],qd=q.slice(),P=[];
   var goal={x:340,y:260},cur={x:340,y:260},lastMove=-1e9;
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -734,6 +692,21 @@ html[lang="en"] [data-en]{display:revert!important}
   cell.addEventListener("pointerup",release);
   cell.addEventListener("pointercancel",release);
 
+  /* keyboard: arrows steer the target, Shift = faster, Enter adds a point, Esc clears the program */
+  var kbdMsg=lang()==="en"?"Arrows move the gripper, Shift is faster, Enter adds a point, Esc clears":"Стрелки двигают схват, с Shift быстрее, Enter ставит точку, Esc сбрасывает";
+  cell.addEventListener("focus",function(){if(!wps.length&&!running)$("msg").textContent=kbdMsg});
+  cell.addEventListener("blur",function(){if(!wps.length&&!running)$("msg").innerHTML=msgDefault});
+  cell.addEventListener("keydown",function(e){
+    var step=e.shiftKey?18:5,dx=0,dy=0;
+    if(e.key==="ArrowLeft")dx=-step;else if(e.key==="ArrowRight")dx=step;else if(e.key==="ArrowUp")dy=-step;else if(e.key==="ArrowDown")dy=step;
+    if(dx||dy){
+      e.preventDefault();if(running)return;
+      goal=inPanel({x:goal.x+dx,y:goal.y+dy});stillSince=performance.now();reconf=null;lastMove=performance.now();
+      showTarget(goal);flagBad(!reachable(goal));
+    }else if(e.key==="Enter"){e.preventDefault();addPoint({x:goal.x,y:goal.y});lastMove=performance.now()}
+    else if(e.key==="Escape"){setRunning(false);wps=[];renderWps();$("msg").textContent=kbdMsg}
+  });
+
 
   /* demo v2: random points spread uniformly over the reachable area, each with a randomly chosen elbow pose,
      joined by a smooth Catmull-Rom spline in joint space (no stops, collision-checked) */
@@ -779,7 +752,7 @@ html[lang="en"] [data-en]{display:revert!important}
     if(running){blocked=false;stepProgram(dt)}
     else{
       /* demo motion only after a long pause, fading in from where the arm is */
-      var quiet=!inside&&!press&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
+      var quiet=!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
       if(quiet&&reachList.length){
         if(!idle){idle={t:now};startDemo();reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
         stepDemo(dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
@@ -791,7 +764,7 @@ html[lang="en"] [data-en]{display:revert!important}
       if(reconf){
         /* slow joint-space move into another configuration, leg by leg */
         var tg=reconf.legs[0];
-        var save=VMAX;VMAX=1.2;drive(tg,dt);VMAX=save;
+        var save=VMAX;VMAX=.8;drive(tg,dt);VMAX=save;
         var dmax=Math.max(Math.abs(tg[0]-q[0]),Math.abs(tg[1]-q[1]),Math.abs(tg[2]-q[2]));
         if(dmax<.01){reconf.legs.shift();if(!reconf.legs.length){reconf=null;qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y}}}
         else if(++reconf.frames>600)reconf=null;

@@ -73,6 +73,8 @@ h1 span{display:block}
 .links{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:17px;font-weight:550}
 .links a{color:var(--ink)}
 
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cell:focus-visible{outline:3px solid var(--safety);outline-offset:3px}
 .cell{position:relative;background:var(--panel);border-radius:20px;aspect-ratio:1/1;max-height:560px;width:100%;overflow:hidden;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
 .cell svg{display:block;width:100%;height:100%}
 .cell .bad{stroke:#C2413A}
@@ -176,7 +178,8 @@ html[lang="en"] [data-en]{display:revert!important}
 <a class="em" data-e="ur.oknehcvehsmiskam@xobni" href="#contact">inbox<span aria-hidden="true"> [@] </span>maksimshevchenko.ru</a>
 </div>
 </div>
-<div class="cell" id="cell">
+<div aria-describedby="kbdHelp" class="cell" id="cell" tabindex="0">
+<p class="sr-only" id="kbdHelp"><span>Управление с клавиатуры: стрелки двигают схват, с Shift быстрее, Enter ставит точку программы, Esc сбрасывает программу.</span></p>
 <svg aria-label="Робот-манипулятор следует за курсором" id="arm" role="img" viewbox="0 0 520 520">
 <g fill="none">
 <defs>
@@ -289,14 +292,14 @@ html[lang="en"] [data-en]{display:revert!important}
 
 </li>
 <li>
-<span class="kind"><span>Программа для ЭВМ RU 2025695805, 2025</span></span>
-<div class="title">Модуль управления пользовательскими контейнерами для образовательной платформы по робототехнике (серверная часть)</div>
+<span class="kind"><span>Программа для ЭВМ RU 2025695805, 2025</span></span>
+<div class="title">Модуль управления пользовательскими контейнерами для образовательной платформы по робототехнике (серверная часть)</div>
 
 <div class="meta">Совместно с М. А. Шереужевым, А. В. Пешниным, Ф. В. Девяткиным. Правообладатель — МГТУ «СТАНКИН».</div>
 
 </li>
 <li>
-<span class="kind"><span>Программа для ЭВМ RU 2023685496, 2023</span></span>
+<span class="kind"><span>Программа для ЭВМ RU 2023685496, 2023</span></span>
 <div class="title">Регулятор интенсивности освещения (LIV controller)</div>
 
 <div class="meta">Совместно с А. С. Героевым.</div>
@@ -340,7 +343,7 @@ html[lang="en"] [data-en]{display:revert!important}
 <h2><span>Упоминания</span></h2>
 <ul class="mentions">
 <li>
-<a href="https://t.me/msutstankin/10004" rel="noopener" target="_blank"><span>Рассказал о работе Молодёжного проектного центра СТАНКИНа на форуме студенческих конструкторских бюро в МГТУ им. Н. Э. Баумана</span></a>
+<a href="https://t.me/msutstankin/10004" rel="noopener" target="_blank"><span>Рассказал о работе Молодёжного проектного центра СТАНКИНа на форуме студенческих конструкторских бюро в МГТУ им. Н. Э. Баумана</span></a>
 <span class="src"><span>Telegram-канал МГТУ «СТАНКИН»</span></span>
 </li>
 <li>
@@ -379,7 +382,7 @@ html[lang="en"] [data-en]{display:revert!important}
   var L=[115,85,40],RAD=[13,10,8],base={x:260,y:400},FLOOR_Y=440,MM=4;
   var LIM=[[20*D,160*D],[-130*D,130*D],[-120*D,120*D]];
   var BASE_SEG=[{x:236,y:424},{x:284,y:424}],BASE_R=16;
-  var VMAX=2.4; /* rad/s per joint */
+  var VMAX=1.3; /* rad/s per joint (manual control and MoveL) */
   var q=[100*D,-35*D,-60*D],qd=q.slice(),P=[];
   var goal={x:340,y:260},cur={x:340,y:260},lastMove=-1e9;
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -725,6 +728,21 @@ html[lang="en"] [data-en]{display:revert!important}
   cell.addEventListener("pointerup",release);
   cell.addEventListener("pointercancel",release);
 
+  /* keyboard: arrows steer the target, Shift = faster, Enter adds a point, Esc clears the program */
+  var kbdMsg=lang()==="en"?"Arrows move the gripper, Shift is faster, Enter adds a point, Esc clears":"Стрелки двигают схват, с Shift быстрее, Enter ставит точку, Esc сбрасывает";
+  cell.addEventListener("focus",function(){if(!wps.length&&!running)$("msg").textContent=kbdMsg});
+  cell.addEventListener("blur",function(){if(!wps.length&&!running)$("msg").innerHTML=msgDefault});
+  cell.addEventListener("keydown",function(e){
+    var step=e.shiftKey?18:5,dx=0,dy=0;
+    if(e.key==="ArrowLeft")dx=-step;else if(e.key==="ArrowRight")dx=step;else if(e.key==="ArrowUp")dy=-step;else if(e.key==="ArrowDown")dy=step;
+    if(dx||dy){
+      e.preventDefault();if(running)return;
+      goal=inPanel({x:goal.x+dx,y:goal.y+dy});stillSince=performance.now();reconf=null;lastMove=performance.now();
+      showTarget(goal);flagBad(!reachable(goal));
+    }else if(e.key==="Enter"){e.preventDefault();addPoint({x:goal.x,y:goal.y});lastMove=performance.now()}
+    else if(e.key==="Escape"){setRunning(false);wps=[];renderWps();$("msg").textContent=kbdMsg}
+  });
+
 
   /* demo v2: random points spread uniformly over the reachable area, each with a randomly chosen elbow pose,
      joined by a smooth Catmull-Rom spline in joint space (no stops, collision-checked) */
@@ -770,7 +788,7 @@ html[lang="en"] [data-en]{display:revert!important}
     if(running){blocked=false;stepProgram(dt)}
     else{
       /* demo motion only after a long pause, fading in from where the arm is */
-      var quiet=!inside&&!press&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
+      var quiet=!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
       if(quiet&&reachList.length){
         if(!idle){idle={t:now};startDemo();reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
         stepDemo(dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
@@ -782,7 +800,7 @@ html[lang="en"] [data-en]{display:revert!important}
       if(reconf){
         /* slow joint-space move into another configuration, leg by leg */
         var tg=reconf.legs[0];
-        var save=VMAX;VMAX=1.2;drive(tg,dt);VMAX=save;
+        var save=VMAX;VMAX=.8;drive(tg,dt);VMAX=save;
         var dmax=Math.max(Math.abs(tg[0]-q[0]),Math.abs(tg[1]-q[1]),Math.abs(tg[2]-q[2]));
         if(dmax<.01){reconf.legs.shift();if(!reconf.legs.length){reconf=null;qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y}}}
         else if(++reconf.frames>600)reconf=null;
