@@ -175,12 +175,14 @@ html[lang="en"] [data-en]{display:revert!important}
         <g fill="none">
           <defs>
             <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="9" stroke="var(--rule)" stroke-width="2"/>
+              <line x1="0" y1="0" x2="0" y2="9" stroke="var(--steel)" stroke-opacity=".38" stroke-width="2"/>
             </pattern>
+            <mask id="nrMask" maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="520">
+              <image id="nrImg" x="0" y="0" width="520" height="520" preserveAspectRatio="none"/>
+            </mask>
           </defs>
-          <path id="noreach" fill="url(#hatch)" fill-rule="evenodd" stroke="none"/>
-          <path id="envelope" stroke="var(--steel)" stroke-width="1.5" stroke-dasharray="3 6"/>
-          <text id="singTxt" x="260" y="463" text-anchor="middle" font-size="13" fill="#C2413A" stroke="none" font-family="inherit" opacity="0"><tspan data-ru>сингулярность: рука вытянута</tspan><tspan data-en>singularity: arm fully stretched</tspan></text>
+          <rect id="noreach" x="0" y="0" width="520" height="520" fill="url(#hatch)" mask="url(#nrMask)" opacity="0"/>
+          <text id="singTxt" x="260" y="463" text-anchor="middle" font-size="13" fill="#C2413A" stroke="none" font-family="inherit"></text>
           <line x1="40" x2="480" y1="440" y2="440" stroke="var(--steel)" stroke-width="2"/>
           <path d="M230 440 L238 400 L282 400 L290 440 Z" fill="var(--ink)"/>
           <g id="path"></g>
@@ -406,59 +408,146 @@ html[lang="en"] [data-en]{display:revert!important}
   });
   document.getElementById("y").textContent=new Date().getFullYear();
 
-  /* robot arm: 3-link planar manipulator, IK by FABRIK.
-     Base frame is at J1; 1 svg unit = 3 mm; Y points up. */
+  /* robot arm: planar 3-link manipulator with joint limits and self-collision.
+     Base frame is at J1; 1 svg unit = 4 mm; Y points up. IK: damped least squares in joint space. */
   var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
-  var L=[115,85,40],R=L[0]+L[1]+L[2],base={x:260,y:400},FLOOR=428,MM=4;
-  var P=[{x:260,y:400},{x:260,y:285},{x:260,y:200},{x:260,y:160}];
+  var D=Math.PI/180;
+  var L=[115,85,40],RAD=[13,10,7],GRIP=16,base={x:260,y:400},FLOOR_Y=440,MM=4;
+  var LIM=[[20*D,160*D],[-130*D,130*D],[-120*D,120*D]];
+  var BASE_SEG=[{x:240,y:422},{x:280,y:422}],BASE_R=18;
+  var q=[100*D,-35*D,-60*D],P=[],G={x:0,y:0};
   var goal={x:340,y:260},cur={x:340,y:260},lastMove=-1e9;
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var lang=function(){return document.documentElement.lang==="en"?"en":"ru"};
-  /* workspace: disc of radius R around J1, cut by the floor */
-  (function(){
-    var h=FLOOR-base.y,w=Math.sqrt(R*R-h*h),xl=base.x-w,xr=base.x+w;
-    var env="M"+xl+" "+FLOOR+" A"+R+" "+R+" 0 1 1 "+xr+" "+FLOOR+" Z";
-    $("envelope").setAttribute("d","M"+xl+" "+FLOOR+" A"+R+" "+R+" 0 1 1 "+xr+" "+FLOOR);
-    $("noreach").setAttribute("d","M0 0 H520 V520 H0 Z "+env);
-  })();
 
-  function reachable(p){return p.y<=FLOOR&&Math.hypot(p.x-base.x,p.y-base.y)<=R}
-  function clampGoal(p){
-    var y=Math.min(p.y,FLOOR),dx=p.x-base.x,dy=y-base.y,d=Math.hypot(dx,dy),m=R-.5;
-    if(d>m){dx*=m/d;dy*=m/d}
-    return {x:base.x+dx,y:base.y+dy};
+  /* ---------- kinematics ---------- */
+  function fkInto(qq,out){
+    var a=qq[0],x=base.x,y=base.y;out[0]={x:x,y:y};
+    for(var i=0;i<3;i++){if(i)a+=qq[i];x+=L[i]*Math.cos(a);y-=L[i]*Math.sin(a);out[i+1]={x:x,y:y}}
+    out.g={x:x+GRIP*Math.cos(a),y:y-GRIP*Math.sin(a)};
+    return out;
   }
-  function solve(t){
-    for(var it=0;it<14;it++){
-      P[3]={x:t.x,y:t.y};
-      for(var i=2;i>=0;i--){var dx=P[i].x-P[i+1].x,dy=P[i].y-P[i+1].y,d=Math.hypot(dx,dy)||1;P[i]={x:P[i+1].x+dx*L[i]/d,y:P[i+1].y+dy*L[i]/d}}
-      P[0]={x:base.x,y:base.y};
-      for(i=0;i<3;i++){dx=P[i+1].x-P[i].x;dy=P[i+1].y-P[i].y;d=Math.hypot(dx,dy)||1;P[i+1]={x:P[i].x+dx*L[i]/d,y:P[i].y+dy*L[i]/d}}
-      for(i=1;i<4;i++){if(P[i].y>FLOOR)P[i].y=FLOOR}
-      if(Math.hypot(P[3].x-t.x,P[3].y-t.y)<.4)break;
+  function fk(){fkInto(q,P);G=P.g}
+  function segDist(a,b,c,d){
+    function pd(p,s,e){var vx=e.x-s.x,vy=e.y-s.y,l=vx*vx+vy*vy,t=l?((p.x-s.x)*vx+(p.y-s.y)*vy)/l:0;t=t<0?0:t>1?1:t;var dx=s.x+t*vx-p.x,dy=s.y+t*vy-p.y;return Math.sqrt(dx*dx+dy*dy)}
+    function cr(o,p,r){return (p.x-o.x)*(r.y-o.y)-(p.y-o.y)*(r.x-o.x)}
+    var d1=cr(a,b,c),d2=cr(a,b,d),d3=cr(c,d,a),d4=cr(c,d,b);
+    if(((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0)))return 0;
+    return Math.min(pd(a,c,d),pd(b,c,d),pd(c,a,b),pd(d,a,b));
+  }
+  var tmp=[];
+  /* why a configuration is not allowed: 0 = ok, 1 = joint limit, 2 = floor, 3 = self-collision, 4 = base */
+  function check(qq){
+    for(var i=0;i<3;i++)if(qq[i]<LIM[i][0]-1e-9||qq[i]>LIM[i][1]+1e-9)return 1;
+    var p=fkInto(qq,tmp);
+    if(p[1].y>FLOOR_Y-RAD[0]||p[2].y>FLOOR_Y-RAD[1]||p[3].y>FLOOR_Y-RAD[2]||p.g.y>FLOOR_Y-4)return 2;
+    if(segDist(p[0],p[1],p[2],p.g)<RAD[0]+RAD[2]+3)return 3;
+    if(segDist(p[1],p[2],BASE_SEG[0],BASE_SEG[1])<RAD[1]+BASE_R||segDist(p[2],p.g,BASE_SEG[0],BASE_SEG[1])<RAD[2]+BASE_R)return 4;
+    return 0;
+  }
+  function clampQ(qq){for(var i=0;i<3;i++)qq[i]=Math.max(LIM[i][0],Math.min(LIM[i][1],qq[i]));return qq}
+
+  /* one DLS pass towards target t (svg coords); returns remaining error */
+  function ik(t,iters){
+    var lam2=64,e=0;
+    for(var k=0;k<iters;k++){
+      fkInto(q,tmp);
+      var ex=t.x-tmp[3].x,ey=-(t.y-tmp[3].y);e=Math.sqrt(ex*ex+ey*ey);
+      if(e<.25)break;
+      var a=[q[0],q[0]+q[1],q[0]+q[1]+q[2]],J=[[0,0],[0,0],[0,0]];
+      for(var i=0;i<3;i++)for(var j=i;j<3;j++){J[i][0]+=-L[j]*Math.sin(a[j]);J[i][1]+=L[j]*Math.cos(a[j])}
+      var A=lam2,B=0,C=0,Dd=lam2;
+      for(i=0;i<3;i++){A+=J[i][0]*J[i][0];B+=J[i][0]*J[i][1];Dd+=J[i][1]*J[i][1]}C=B;
+      var det=A*Dd-B*C,ux=(Dd*ex-B*ey)/det,uy=(-C*ex+A*ey)/det;
+      var dq=[0,0,0],m=0;
+      for(i=0;i<3;i++){dq[i]=J[i][0]*ux+J[i][1]*uy;m=Math.max(m,Math.abs(dq[i]))}
+      if(m>.12)for(i=0;i<3;i++)dq[i]*=.12/m;
+      var ok=false;
+      for(var s=1;s>.1&&!ok;s*=.5){
+        var nq=clampQ([q[0]+dq[0]*s,q[1]+dq[1]*s,q[2]+dq[2]*s]);
+        if(!check(nq)){q=nq;ok=true}
+      }
+      if(!ok)break;
     }
+    return e;
   }
-  /* absolute link angles (svg frame) and forward kinematics */
-  function linkAngles(){var a=[];for(var i=0;i<3;i++)a.push(Math.atan2(P[i+1].y-P[i].y,P[i+1].x-P[i].x));return a}
-  function fk(a){P[0]={x:base.x,y:base.y};for(var i=0;i<3;i++)P[i+1]={x:P[i].x+L[i]*Math.cos(a[i]),y:P[i].y+L[i]*Math.sin(a[i])}}
-  function wrap(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a}
-  function deg(r){return Math.round(r*180/Math.PI)}
 
+  /* ---------- reachable workspace with limits and collisions ---------- */
+  var CELL=3,GW=Math.ceil(520/CELL),reach=null,cfg=null;
+  function cellOf(p){var ix=Math.floor(p.x/CELL),iy=Math.floor(p.y/CELL);return (ix<0||iy<0||ix>=GW||iy>=GW)?-1:iy*GW+ix}
+  function reachable(p){
+    if(!reach)return Math.hypot(p.x-base.x,p.y-base.y)<=L[0]+L[1]+L[2]&&p.y<FLOOR_Y-6;
+    var c=cellOf(p);return c>=0&&reach[c]===1;
+  }
+  function buildWorkspace(){
+    var n=GW*GW,hit=new Uint8Array(n),best=new Float32Array(n).fill(1e9),conf=new Float32Array(n*3);
+    var s1=1*D,s2=2.5*D,s3=2.5*D,qq=[0,0,0];
+    for(var b=LIM[1][0];b<=LIM[1][1]+1e-9;b+=s2)for(var c=LIM[2][0];c<=LIM[2][1]+1e-9;c+=s3){
+      qq[0]=Math.PI/2;qq[1]=b;qq[2]=c;
+      fkInto(qq,tmp);
+      if(segDist(tmp[0],tmp[1],tmp[2],tmp.g)<RAD[0]+RAD[2]+3)continue; /* self-collision does not depend on J1 */
+      var score=Math.abs(b)*.6+Math.abs(c);
+      for(var a=LIM[0][0];a<=LIM[0][1]+1e-9;a+=s1){
+        qq[0]=a;var r=check(qq);if(r)continue;
+        var p=tmp[3],k=cellOf(p);if(k<0)continue;
+        hit[k]=1;
+        if(score<best[k]){best[k]=score;conf[k*3]=a;conf[k*3+1]=b;conf[k*3+2]=c}
+      }
+    }
+    /* close tiny sampling gaps: a cell is reachable if it was hit, or if most of its neighbours were */
+    var out=new Uint8Array(n);
+    for(var y=1;y<GW-1;y++)for(var x=1;x<GW-1;x++){
+      var i=y*GW+x;if(hit[i]){out[i]=1;continue}
+      var s=hit[i-1]+hit[i+1]+hit[i-GW]+hit[i+GW]+hit[i-GW-1]+hit[i-GW+1]+hit[i+GW-1]+hit[i+GW+1];
+      if(s>=5){out[i]=1;var src=hit[i-1]?i-1:hit[i+1]?i+1:hit[i-GW]?i-GW:i+GW;conf[i*3]=conf[src*3];conf[i*3+1]=conf[src*3+1];conf[i*3+2]=conf[src*3+2]}
+    }
+    reach=out;cfg=conf;
+    /* paint the unreachable area as a mask for the hatch */
+    var cv=document.createElement("canvas");cv.width=GW;cv.height=GW;
+    var cx=cv.getContext("2d"),img=cx.createImageData(GW,GW);
+    for(i=0;i<n;i++){var v=reach[i]?0:255;img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=255;img.data[i*4+3]=v}
+    cx.putImageData(img,0,0);
+    var big=document.createElement("canvas");big.width=big.height=520;
+    var bx=big.getContext("2d");bx.imageSmoothingEnabled=true;
+    if("filter" in bx)bx.filter="blur(1.2px)";
+    bx.drawImage(cv,0,0,520,520);
+    $("nrImg").setAttribute("href",big.toDataURL("image/png"));
+    $("noreach").setAttribute("opacity","1");
+  }
+  function cellCfg(p){var c=cellOf(p);return (c>=0&&reach&&reach[c])?[cfg[c*3],cfg[c*3+1],cfg[c*3+2]]:null}
+
+  /* joint-space glide (used by MoveJ and to escape local minima) */
+  function pathFree(q0,q1){for(var s=1;s<=12;s++){var t=s/12;if(check([q0[0]+(q1[0]-q0[0])*t,q0[1]+(q1[1]-q0[1])*t,q0[2]+(q1[2]-q0[2])*t]))return false}return true}
+  var HOME=[90*D,-20*D,-40*D];
+  function planJoint(target){
+    var start=q.slice();
+    if(pathFree(start,target))return [target];
+    if(pathFree(start,HOME)&&pathFree(HOME,target))return [HOME.slice(),target];
+    return [target];
+  }
+  function refine(p,q0){var save=q;q=q0.slice();ik(p,60);var r=q;q=save;return r}
+
+  /* ---------- drawing ---------- */
+  var RED="#C2413A";
   function draw(){
+    fk();
     [["l1",0],["l2",1],["l3",2]].forEach(function(s){var e=$(s[0]),a=P[s[1]],b=P[s[1]+1];e.setAttribute("x1",a.x);e.setAttribute("y1",a.y);e.setAttribute("x2",b.x);e.setAttribute("y2",b.y)});
-    for(var i=0;i<3;i++){$("j"+(i+1)).setAttribute("cx",P[i].x);$("j"+(i+1)).setAttribute("cy",P[i].y)}
-    var a=linkAngles();
-    $("grip").setAttribute("transform","translate("+P[3].x+" "+P[3].y+") rotate("+(a[2]*180/Math.PI)+")");
-    /* joint angles: J1 from +X of the base frame, J2/J3 relative to previous link; positive = counter-clockwise */
-    $("a1").textContent=deg(-a[0])+"°";
-    $("a2").textContent=deg(-wrap(a[1]-a[0]))+"°";
-    $("a3").textContent=deg(-wrap(a[2]-a[1]))+"°";
+    var a3=-(q[0]+q[1]+q[2])/D;
+    $("grip").setAttribute("transform","translate("+P[3].x+" "+P[3].y+") rotate("+a3+")");
+    var status="";
+    for(var i=0;i<3;i++){
+      var j=$("j"+(i+1)),deg=q[i]/D,atLim=Math.min(q[i]-LIM[i][0],LIM[i][1]-q[i])<1.5*D;
+      j.setAttribute("cx",P[i].x);j.setAttribute("cy",P[i].y);
+      j.setAttribute("fill",atLim?RED:"var(--safety)");
+      var b=$("a"+(i+1));b.textContent=Math.round(deg)+"°";b.style.color=atLim?RED:"";
+      if(atLim&&!status)status=lang()==="en"?"J"+(i+1)+" at its limit":"J"+(i+1)+" на упоре";
+    }
     $("tx").textContent=Math.round((P[3].x-base.x)*MM);
     $("ty").textContent=Math.round((base.y-P[3].y)*MM);
-    var sing=Math.hypot(P[3].x-base.x,P[3].y-base.y)>R-3;
-    $("envelope").setAttribute("stroke",sing?"#C2413A":"var(--steel)");
-    $("singTxt").setAttribute("opacity",sing?"1":"0");
+    if(Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D)status=lang()==="en"?"singularity: arm fully stretched":"сингулярность: рука вытянута";
+    if(blocked&&!status)status=lang()==="en"?"the arm cannot reach this point":"манипулятор не дотягивается до этой точки";
+    var st=$("singTxt");if(st.textContent!==status)st.textContent=status;
   }
 
   /* fading tool path */
@@ -480,13 +569,13 @@ html[lang="en"] [data-en]{display:revert!important}
     for(var j=Math.max(1,trail.length);j<pool.length;j++)if(pool[j])pool[j].style.display="none";
   }
 
-  /* teach mode: program points, MoveJ / MoveL playback */
-  var wps=[],MAXP=8,moveType="J",running=false,seg=null,msgTimer=0;
+  /* ---------- teach mode ---------- */
+  var wps=[],MAXP=8,moveType="J",running=false,seg=null,msgTimer=0,glide=null,stuck=0,blocked=false;
   var msgDefault=$("msg").innerHTML;
   function say(ru,en,warn){
     var m=$("msg");clearTimeout(msgTimer);
     m.textContent=lang()==="en"?en:ru;m.classList.toggle("warn",!!warn);
-    msgTimer=setTimeout(function(){m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault},2200);
+    msgTimer=setTimeout(function(){m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault},2400);
   }
   function renderWps(){
     var g=$("wps");g.innerHTML="";
@@ -510,9 +599,10 @@ html[lang="en"] [data-en]{display:revert!important}
   }
   function addPoint(p){
     if(running)return;
-    if(!reachable(p)){flagBad(true);say("Точка вне рабочей зоны","Point is out of reach",true);return}
+    if(!reachable(p)){flagBad(true);say("Точка вне зоны досягаемости","This point is out of reach",true);return}
     if(wps.length>=MAXP){say("Не больше "+MAXP+" точек","Up to "+MAXP+" points",true);return}
-    wps.push({x:p.x,y:p.y});renderWps();
+    var c=cellCfg(p)||q.slice();
+    wps.push({x:p.x,y:p.y,q:refine(p,c)});renderWps();
   }
   function flagBad(b){$("target").classList.toggle("bad",b)}
   function setRunning(on){
@@ -520,28 +610,38 @@ html[lang="en"] [data-en]{display:revert!important}
     $("run").setAttribute("aria-pressed",String(running));
     $("run").querySelector("[data-ru]").textContent=running?"Стоп":"Пуск";
     $("run").querySelector("[data-en]").textContent=running?"Stop":"Run";
-    seg=null;
-    if(running){nextSeg(0)}else{cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y}}
+    seg=null;glide=null;
+    if(running){nextSeg(0)}else{fk();cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y}}
+  }
+  function makeGlide(target){
+    var legs=planJoint(target),from=q.slice(),list=[];
+    legs.forEach(function(to){
+      var m=0;for(var i=0;i<3;i++)m=Math.max(m,Math.abs(to[i]-from[i]));
+      list.push({a:from,b:to,dur:Math.max(.45,m/1.5)});from=to;
+    });
+    return {legs:list,i:0,t:0};
+  }
+  function stepGlide(g,dt){
+    var leg=g.legs[g.i];leg.t=(leg.t||0)+dt/leg.dur;var t=Math.min(1,leg.t),e=ease(t);
+    var nq=[0,1,2].map(function(k){return leg.a[k]+(leg.b[k]-leg.a[k])*e});
+    if(!check(nq))q=nq;
+    if(t>=1){g.i++;}
+    return g.i>=g.legs.length;
   }
   function nextSeg(i){
-    var from={x:P[3].x,y:P[3].y},to=wps[i%wps.length];
-    var s={i:i%wps.length,from:from,to:to,t:0,type:moveType};
-    if(moveType==="J"){
-      var a0=linkAngles(),save=P.map(function(q){return {x:q.x,y:q.y}});
-      solve(to);var a1=linkAngles();P=save;
-      var da=a1.map(function(v,k){return wrap(v-a0[k])}),m=Math.max.apply(null,da.map(Math.abs));
-      s.a0=a0;s.da=da;s.dur=Math.max(.5,m/1.6);
-    }else{
-      s.dur=Math.max(.5,Math.hypot(to.x-from.x,to.y-from.y)/170);
-    }
+    i=i%wps.length;var to=wps[i];
+    var s={i:i,type:moveType,from:(fk(),{x:P[3].x,y:P[3].y}),to:to,t:0,warned:false};
+    if(moveType==="J"){s.glide=makeGlide(to.q)}
+    else s.dur=Math.max(.5,Math.hypot(to.x-s.from.x,to.y-s.from.y)/170);
     seg=s;
   }
   function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
   function stepProgram(dt){
+    if(seg.type==="J"){if(stepGlide(seg.glide,dt))nextSeg(seg.i+1);return}
     seg.t=Math.min(1,seg.t+dt/seg.dur);var e=ease(seg.t);
-    if(seg.type==="J"){fk(seg.a0.map(function(v,k){return v+seg.da[k]*e}))}
-    else{solve({x:seg.from.x+(seg.to.x-seg.from.x)*e,y:seg.from.y+(seg.to.y-seg.from.y)*e})}
-    if(seg.t>=1){nextSeg(seg.i+1)}
+    var err=ik({x:seg.from.x+(seg.to.x-seg.from.x)*e,y:seg.from.y+(seg.to.y-seg.from.y)*e},40);
+    if(err>3&&!seg.warned){seg.warned=true;say("MoveL: прямая проходит через недостижимую зону","MoveL: the straight line crosses an unreachable area",true)}
+    if(seg.t>=1)nextSeg(seg.i+1);
   }
 
   document.querySelectorAll("[data-move]").forEach(function(b){
@@ -557,33 +657,43 @@ html[lang="en"] [data-en]{display:revert!important}
 
   function toSvg(e){var pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
   function showTarget(p){var tg=$("target");tg.setAttribute("transform","translate("+p.x+" "+p.y+")");tg.setAttribute("opacity","1")}
+  function inPanel(p){return {x:Math.max(0,Math.min(520,p.x)),y:Math.max(0,Math.min(520,p.y))}}
   hero.addEventListener("pointermove",function(e){
-    var p=toSvg(e);lastMove=performance.now();showTarget(p);
+    var p=toSvg(e);lastMove=performance.now();inside=e.pointerType==="mouse";showTarget(p);
     var inCell=e.target.closest&&e.target.closest("#cell");
     flagBad(!!inCell&&!reachable(p));
-    if(!running)goal=clampGoal(p);
+    if(!running)goal=inPanel(p);
   });
-  hero.addEventListener("pointerleave",function(){$("target").setAttribute("opacity","0")});
+  var inside=false;
+  hero.addEventListener("pointerenter",function(){inside=true});
+  hero.addEventListener("pointerleave",function(){inside=false;$("target").setAttribute("opacity","0");flagBad(false)});
   cell.addEventListener("pointerdown",function(e){
     var p=toSvg(e);lastMove=performance.now();showTarget(p);
-    if(!running)goal=clampGoal(p);
+    if(!running)goal=inPanel(p);
     addPoint(p);
   });
 
-  solve(cur);draw();
+  draw();
+  setTimeout(buildWorkspace,30);
   var t0=performance.now(),prev=t0;
   (function tick(now){
     var dt=Math.min(.05,(now-prev)/1000);prev=now;
-    if(running){stepProgram(dt)}
+    if(running){blocked=false;stepProgram(dt)}
+    else if(glide){if(stepGlide(glide,dt))glide=null}
     else{
-      if(!reduce&&now-lastMove>2500&&!wps.length){
+      if(!reduce&&!inside&&now-lastMove>2500&&!wps.length){
         $("target").setAttribute("opacity","0");
         var s=(now-t0)/1000;
-        goal=clampGoal({x:base.x+140*Math.sin(s*.45),y:270+60*Math.sin(s*.9+1)});
+        goal={x:base.x+150*Math.sin(s*.45),y:250+70*Math.sin(s*.9+1)};
       }
-      var k=reduce?1:.12;
+      var k=reduce?1:.14;
       cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
-      solve(cur);
+      var err=ik(cur,reduce?80:10);
+      /* stuck in a local minimum although the point is reachable: glide there in joint space */
+      if(err>4&&reachable(cur)){
+        if(++stuck>18){var c=cellCfg(cur);if(c){glide=makeGlide(refine(cur,c))}stuck=0}
+      }else stuck=0;
+      blocked=err>6&&!reachable(goal);
     }
     draw();drawTrail(now);
     requestAnimationFrame(tick);
