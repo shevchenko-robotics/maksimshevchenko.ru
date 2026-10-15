@@ -71,6 +71,11 @@ header .who{font-weight:600;color:var(--ink);text-decoration:none;font-size:16px
 .hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:end;padding:24px 0 64px}
 h1{font-weight:760;font-size:clamp(52px,8vw,104px);line-height:.9;letter-spacing:-.045em;margin:0 0 32px}
 h1 span{display:block}
+/* "Shevchenko" in Latin is ~17% wider than "Шевченко": cap the size by the column width so it never runs under the arm panel */
+@media screen{
+  .hero>div:first-child{container-type:inline-size}
+  html[lang="en"] h1{font-size:min(clamp(52px,8vw,104px),17.8cqi)}
+}
 .intro{font-size:clamp(19px,2vw,22px);line-height:1.5;max-width:30ch;margin:0 0 32px;color:var(--ink)}
 .links{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:17px;font-weight:550}
 .links a{color:var(--ink)}
