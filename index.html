@@ -1,31 +1,36 @@
 <!doctype html>
+
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Максим Шевченко</title>
-<meta name="description" content="Инженер-робототехник и преподаватель. Космическая, промышленная и мобильная робототехника, инженерное образование.">
-<meta property="og:title" content="Максим Шевченко">
-<meta property="og:description" content="Инженер-робототехник и преподаватель">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://maksimshevchenko.ru/og.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:locale" content="ru_RU">
-<meta property="og:locale:alternate" content="en_US">
-<meta name="twitter:card" content="summary_large_image">
-<meta property="og:url" content="https://maksimshevchenko.ru/">
-<link rel="canonical" href="https://maksimshevchenko.ru/">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Максим Шевченко — инженер-робототехник и преподаватель</title>
+<meta content="Инженер-робототехник и преподаватель. Космическая, промышленная и мобильная робототехника, инженерное образование." name="description"/>
+<link href="https://maksimshevchenko.ru/" rel="canonical"/>
+<link href="https://maksimshevchenko.ru/" hreflang="ru" rel="alternate"/>
+<link href="https://maksimshevchenko.ru/en/" hreflang="en" rel="alternate"/>
+<link href="https://maksimshevchenko.ru/" hreflang="x-default" rel="alternate"/>
+<meta content="website" property="og:type"/>
+<meta content="https://maksimshevchenko.ru/" property="og:url"/>
+<meta content="Максим Шевченко" property="og:title"/>
+<meta content="Инженер-робототехник и преподаватель" property="og:description"/>
+<meta content="https://maksimshevchenko.ru/og.jpg" property="og:image"/>
+<meta content="1200" property="og:image:width"/>
+<meta content="630" property="og:image:height"/>
+<meta content="ru_RU" property="og:locale"/>
+<meta content="en_US" property="og:locale:alternate"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Person", "name": "Максим Шевченко", "alternateName": ["Шевченко Максим Юрьевич", "Maksim Shevchenko"], "jobTitle": "Инженер-робототехник, преподаватель", "url": "https://maksimshevchenko.ru/", "image": "https://maksimshevchenko.ru/photo.jpg", "email": "mailto:inbox@maksimshevchenko.ru", "sameAs": ["https://github.com/shevchenko-robotics", "https://t.me/m_shevchenko"], "affiliation": [{"@type": "CollegeOrUniversity", "name": "МГТУ им. Н. Э. Баумана"}, {"@type": "CollegeOrUniversity", "name": "МГТУ «СТАНКИН»"}], "alumniOf": {"@type": "CollegeOrUniversity", "name": "МГТУ им. Н. Э. Баумана"}, "knowsAbout": ["Робототехника", "Промышленные роботы", "Мобильные роботы", "ROS 2", "Космическая робототехника", "Инженерное образование"]}</script>
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon"/>
+<link as="font" crossorigin="" href="/fonts/onest-cyrillic-wght-normal.woff2" rel="preload" type="font/woff2"/>
 <style>
 @font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;
-  src:url(fonts/onest-cyrillic-wght-normal.woff2) format("woff2");
+  src:url(/fonts/onest-cyrillic-wght-normal.woff2) format("woff2");
   unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;
-  src:url(fonts/onest-latin-wght-normal.woff2) format("woff2");
+  src:url(/fonts/onest-latin-wght-normal.woff2) format("woff2");
   unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 
 :root{
@@ -54,8 +59,9 @@ a:hover{text-decoration-thickness:2px}
 header{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
 header .who{font-weight:600;color:var(--ink);text-decoration:none;font-size:16px}
 .lang{display:flex;gap:2px;font-size:15px}
-.lang button{font:inherit;cursor:pointer;background:none;border:0;color:var(--steel);padding:4px 8px;border-radius:6px}
-.lang button[aria-pressed="true"]{color:var(--ink);font-weight:650;background:var(--panel)}
+.lang a{color:var(--steel);padding:4px 8px;border-radius:6px;text-decoration:none}
+.lang a:hover{color:var(--ink)}
+.lang a[aria-current="page"]{color:var(--ink);font-weight:650;background:var(--panel)}
 
 /* hero */
 .hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:end;padding:24px 0 64px}
@@ -147,259 +153,216 @@ html[lang="en"] [data-en]{display:revert!important}
 </head>
 <body>
 <div class="wrap">
-
 <header>
-  <a class="who" href="#top"><span data-ru>maksimshevchenko.ru</span><span data-en>maksimshevchenko.ru</span></a>
-  <div class="lang" role="group" aria-label="Язык / Language">
-    <button type="button" data-set-lang="ru" aria-pressed="true">Рус</button>
-    <button type="button" data-set-lang="en" aria-pressed="false">Eng</button>
-  </div>
+<a class="who" href="#top"><span>maksimshevchenko.ru</span></a>
+<nav aria-label="Язык / Language" class="lang">
+<a aria-current="page" href="/" hreflang="ru" lang="ru">Рус</a>
+<a href="/en/" hreflang="en" lang="en">Eng</a>
+</nav>
 </header>
-
 <main id="top">
-  <div class="hero">
-    <div>
-      <h1 data-ru><span>Максим</span><span>Шевченко</span></h1>
-      <h1 data-en><span>Maksim</span><span>Shevchenko</span></h1>
-      <p class="intro" data-ru>Инженер-робототехник и&nbsp;преподаватель. Проектирую роботов, программирую их и&nbsp;учу этому студентов.</p>
-      <p class="intro" data-en>Robotics engineer and lecturer. I design robots, program them, and teach students to do the same.</p>
-      <div class="links">
-        <a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>
-        <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">GitHub</a>
-        <a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
-      </div>
-    </div>
+<div class="hero">
+<div>
+<h1><span>Максим</span><span>Шевченко</span></h1>
 
-    <div class="cell" id="cell">
-      <svg id="arm" viewBox="0 0 520 520" role="img" aria-label="Робот-манипулятор следует за курсором">
-        <g fill="none">
-          <defs>
-            <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <line x1="0" y1="0" x2="0" y2="9" stroke="var(--steel)" stroke-opacity=".38" stroke-width="2"/>
-            </pattern>
-            <mask id="nrMask" maskUnits="userSpaceOnUse" x="0" y="0" width="520" height="520">
-              <image id="nrImg" x="0" y="0" width="520" height="520" preserveAspectRatio="none"/>
-            </mask>
-          </defs>
-          <rect id="noreach" x="0" y="0" width="520" height="520" fill="url(#hatch)" mask="url(#nrMask)" opacity="0"/>
-          <text id="singTxt" x="260" y="463" text-anchor="middle" font-size="13" fill="#C2413A" stroke="none" font-family="inherit"></text>
-          <line x1="40" x2="480" y1="440" y2="440" stroke="var(--steel)" stroke-width="2"/>
-          <path d="M226 440 L232 418 Q234 412 240 412 L280 412 Q286 412 288 418 L294 440 Z" fill="var(--ink)"/>
-          <rect x="238" y="404" width="44" height="6" rx="3" fill="var(--steel)"/>
-          <g id="path"></g>
-          <g id="trail" stroke="var(--link)" stroke-linecap="round"></g>
-          <g id="wps"></g>
-          <g id="target" stroke="var(--steel)" stroke-width="1.5" opacity="0">
-            <circle r="9"/><line x1="-16" x2="-5"/><line x1="5" x2="16"/><line y1="-16" y2="-5"/><line y1="5" y2="16"/>
-          </g>
-          <g id="armg"></g>
-          <circle id="tcp" r="3.2" fill="var(--link)"/>
-        </g>
-      </svg>
-      <div class="pendant" id="pendant">
-        <span class="msg" id="msg">
-          <span data-ru><span class="mouse-only">Ведите курсором — манипулятор следует. Щелчок ставит точку программы.</span><span class="touch-only">Ведите пальцем — манипулятор следует. Короткое касание ставит точку.</span></span>
-          <span data-en><span class="mouse-only">Move the cursor and the arm follows. Click to add a program point.</span><span class="touch-only">Drag to steer the arm. A short tap adds a program point.</span></span>
-        </span>
-        <span class="ctl">
-          <span class="seg" role="group" aria-label="Тип движения">
-            <button type="button" data-move="J" aria-pressed="true" title="Интерполяция в пространстве суставов">MoveJ</button>
-            <button type="button" data-move="L" aria-pressed="false" title="Прямолинейное движение схвата">MoveL</button>
-          </span>
-          <button type="button" class="run" id="run" aria-pressed="false" disabled><span data-ru>Пуск</span><span data-en>Run</span></button>
-          <button type="button" id="clear"><span data-ru>Сбросить</span><span data-en>Clear</span></button>
-        </span>
-      </div>
-      <div class="readout" aria-hidden="true">
-        <span class="joints"><span>J1 <b id="a1">0°</b></span><span>J2 <b id="a2">0°</b></span><span>J3 <b id="a3">0°</b></span></span>
-        <span class="tcp"><span>X <b id="tx">0</b></span><span>Y <b id="ty">0</b></span><span data-ru>мм</span><span data-en>mm</span></span>
-      </div>
-    </div>
-  </div>
+<p class="intro">Инженер-робототехник и преподаватель. Проектирую роботов, программирую их и учу этому студентов.</p>
 
-  <section>
-    <div class="side">
-      <h2><span data-ru>Обо мне</span><span data-en>About</span></h2>
-      <img class="portrait" src="photo.jpg" width="800" height="999" alt="" loading="lazy">
-    </div>
-    <div class="prose">
-      <div data-ru>
-        <p>Больше одиннадцати лет занимаюсь робототехникой. Начинал в&nbsp;РКК «Энергия» с&nbsp;исследований и&nbsp;разработок в&nbsp;космической робототехнике, потом перешёл в&nbsp;университеты.</p>
-        <p>Сейчас преподаю в&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана и&nbsp;МГТУ «СТАНКИН», веду студенческие проекты, а&nbsp;за&nbsp;рубежом — курс по&nbsp;промышленным роботам на&nbsp;английском языке. Пишу программы повышения квалификации для инженеров и&nbsp;снял видеокурс по&nbsp;промышленной робототехнике.</p>
-        <p>Мне интересно, где робот встречается с&nbsp;реальной задачей: манипулятор в&nbsp;цехе или мобильная платформа, которая сама находит дорогу. А&nbsp;в&nbsp;преподавании для меня главное, чтобы мои студенты после выпуска сразу могли работать с&nbsp;настоящим оборудованием.</p>
-      </div>
-      <div data-en>
-        <p>I have worked in robotics for more than eleven years. I started at RSC Energia doing R&amp;D in space robotics, then moved into universities.</p>
-        <p>Today I teach at Bauman Moscow State Technical University and Moscow State University of Technology “STANKIN”, supervise student projects, and teach an English-language course on industrial robots abroad. I also write professional training programs for engineers and have recorded a video course on industrial robotics.</p>
-        <p>What interests me is where a robot meets a real task: an arm on the shop floor or a mobile platform that finds its own way. In teaching, what matters most to me is that my students can work with real equipment as soon as they graduate.</p>
-      </div>
-    </div>
-  </section>
+<div class="links">
+<a href="https://t.me/m_shevchenko" rel="noopener" target="_blank">Telegram</a>
+<a href="https://github.com/shevchenko-robotics" rel="me noopener" target="_blank">GitHub</a>
+<a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
+</div>
+</div>
+<div class="cell" id="cell">
+<svg aria-label="Робот-манипулятор следует за курсором" id="arm" role="img" viewbox="0 0 520 520">
+<g fill="none">
+<defs>
+<pattern height="9" id="hatch" patterntransform="rotate(45)" patternunits="userSpaceOnUse" width="9">
+<line stroke="var(--steel)" stroke-opacity=".38" stroke-width="2" x1="0" x2="0" y1="0" y2="9"></line>
+</pattern>
+<mask height="520" id="nrMask" maskunits="userSpaceOnUse" width="520" x="0" y="0">
+<image height="520" id="nrImg" preserveaspectratio="none" width="520" x="0" y="0"/>
+</mask>
+</defs>
+<rect fill="url(#hatch)" height="520" id="noreach" mask="url(#nrMask)" opacity="0" width="520" x="0" y="0"></rect>
+<text fill="#C2413A" font-family="inherit" font-size="13" id="singTxt" stroke="none" text-anchor="middle" x="260" y="463"></text>
+<line stroke="var(--steel)" stroke-width="2" x1="40" x2="480" y1="440" y2="440"></line>
+<path d="M226 440 L232 418 Q234 412 240 412 L280 412 Q286 412 288 418 L294 440 Z" fill="var(--ink)"></path>
+<rect fill="var(--steel)" height="6" rx="3" width="44" x="238" y="404"></rect>
+<g id="path"></g>
+<g id="trail" stroke="var(--link)" stroke-linecap="round"></g>
+<g id="wps"></g>
+<g id="target" opacity="0" stroke="var(--steel)" stroke-width="1.5">
+<circle r="9"></circle><line x1="-16" x2="-5"></line><line x1="5" x2="16"></line><line y1="-16" y2="-5"></line><line y1="5" y2="16"></line>
+</g>
+<g id="armg"></g>
+<circle fill="var(--link)" id="tcp" r="3.2"></circle>
+</g>
+</svg>
+<div class="pendant" id="pendant">
+<span class="msg" id="msg">
+<span><span class="mouse-only">Ведите курсором — манипулятор следует. Щелчок ставит точку программы.</span><span class="touch-only">Ведите пальцем — манипулятор следует. Короткое касание ставит точку.</span></span>
 
-  <section>
-    <h2><span data-ru>Путь</span><span data-en>Path</span></h2>
-    <ol class="chain">
-      <li>
-        <div class="org" data-ru>РКК «Энергия»</div><div class="org" data-en>RSC Energia</div>
-        <div class="what" data-ru>Исследования и&nbsp;разработки в&nbsp;космической робототехнике.</div>
-        <div class="what" data-en>R&amp;D in space robotics.</div>
-      </li>
-      <li class="now">
-        <div class="org" data-ru>МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана</div><div class="org" data-en>Bauman Moscow State Technical University</div>
-        <div class="what" data-ru>Учился робототехнике и&nbsp;мехатронике, теперь преподаю.</div>
-        <div class="what" data-en>Studied robotics and mechatronics; now teach there.</div>
-      </li>
-      <li class="now">
-        <div class="org" data-ru>МГТУ «СТАНКИН»</div><div class="org" data-en>STANKIN</div>
-        <div class="what" data-ru>Преподавание, лаборатория робототехники, студенческое бюро робототехники: команды, мобильные платформы, соревнования. Команда бюро стала призёром инженерного хакатона РКК «Энергия».</div>
-        <div class="what" data-en>Teaching, a robotics lab, and a student robotics bureau: teams, mobile platforms, competitions. The bureau’s team placed at RSC Energia’s engineering hackathon.</div>
-      </li>
-      <li class="now">
-        <div class="org" data-ru>Преподавание за&nbsp;рубежом</div><div class="org" data-en>Teaching abroad</div>
-        <div class="what" data-ru>Курс по&nbsp;программированию и&nbsp;эксплуатации промышленных роботов на&nbsp;английском языке.</div>
-        <div class="what" data-en>An English-taught course on programming and operating industrial robots.</div>
-      </li>
-    </ol>
-  </section>
-
-  <section>
-    <h2><span data-ru>С&nbsp;чем работаю</span><span data-en>What I work with</span></h2>
-    <div class="kit">
-      <div>
-        <h3><span data-ru>Промышленные роботы</span><span data-en>Industrial robots</span></h3>
-        <ul><li>ABB RobotStudio</li><li>FANUC</li><li>KUKA</li><li data-ru>Коллаборативные роботы</li><li data-en>Collaborative robots</li></ul>
-      </div>
-      <div>
-        <h3><span data-ru>Мобильные роботы</span><span data-en>Mobile robots</span></h3>
-        <ul><li>ROS&nbsp;2</li><li>Nav2</li><li>Gazebo</li><li data-ru>Компьютерное зрение, OpenCV</li><li data-en>Computer vision, OpenCV</li></ul>
-      </div>
-      <div>
-        <h3><span data-ru>Программирование</span><span data-en>Programming</span></h3>
-        <ul><li>Python</li><li>C++</li><li>MoveIt</li></ul>
-      </div>
-    </div>
-  </section>
-
-
-  <section id="works">
-    <h2><span data-ru>Патенты и&nbsp;публикации</span><span data-en>Patents and publications</span></h2>
-    <ul class="records">
-      <li>
-        <span class="kind"><span data-ru>Патент на&nbsp;изобретение RU&nbsp;2869712&nbsp;C1, 2026</span><span data-en>Russian patent RU&nbsp;2869712&nbsp;C1, 2026</span></span>
-        <div class="title" data-ru>Способ управления совместным движением гетерогенной многоагентной системой</div>
-        <div class="title" data-en>Method for controlling the joint motion of a heterogeneous multi-agent system</div>
-        <div class="meta" data-ru>Совместно с&nbsp;А.&nbsp;В.&nbsp;Пешниным, М.&nbsp;А.&nbsp;Гридневым, М.&nbsp;А.&nbsp;Шереужевым. Патентообладатель — МГТУ «СТАНКИН».</div>
-        <div class="meta" data-en>With A.&nbsp;V.&nbsp;Peshnin, M.&nbsp;A.&nbsp;Gridnev, M.&nbsp;A.&nbsp;Shereuzhev. Patent holder: STANKIN.</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2025695805, 2025</span><span data-en>Registered software RU&nbsp;2025695805, 2025</span></span>
-        <div class="title" data-ru>Модуль управления пользовательскими контейнерами для&nbsp;образовательной платформы по&nbsp;робототехнике (серверная часть)</div>
-        <div class="title" data-en>User container management module for a robotics education platform (server side)</div>
-        <div class="meta" data-ru>Совместно с&nbsp;М.&nbsp;А.&nbsp;Шереужевым, А.&nbsp;В.&nbsp;Пешниным, Ф.&nbsp;В.&nbsp;Девяткиным. Правообладатель — МГТУ «СТАНКИН».</div>
-        <div class="meta" data-en>With M.&nbsp;A.&nbsp;Shereuzhev, A.&nbsp;V.&nbsp;Peshnin, F.&nbsp;V.&nbsp;Devyatkin. Rights holder: STANKIN.</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Программа для&nbsp;ЭВМ RU&nbsp;2023685496, 2023</span><span data-en>Registered software RU&nbsp;2023685496, 2023</span></span>
-        <div class="title" data-ru>Регулятор интенсивности освещения (LIV controller)</div>
-        <div class="title" data-en>Lighting intensity controller (LIV controller)</div>
-        <div class="meta" data-ru>Совместно с&nbsp;А.&nbsp;С.&nbsp;Героевым.</div>
-        <div class="meta" data-en>With A.&nbsp;S.&nbsp;Geroev.</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Статья, 2019</span><span data-en>Article, 2019</span></span>
-        <div class="title" data-ru>Моделирование червеобразного движения робота-змеи с&nbsp;учётом динамики</div>
-        <div class="title" data-en>Modeling the worm-like motion of a snake robot with dynamics</div>
-        <div class="meta" data-ru>В.&nbsp;А.&nbsp;Польский, А.&nbsp;А.&nbsp;Лукин, М.&nbsp;Ю.&nbsp;Шевченко. Электронный научный журнал «E-Scio.ru».</div>
-        <div class="meta" data-en>V.&nbsp;A.&nbsp;Polsky, A.&nbsp;A.&nbsp;Lukin, M.&nbsp;Yu.&nbsp;Shevchenko. E-Scio.ru online journal (in Russian).</div>
-      </li>
-      <li>
-        <span class="kind"><span data-ru>Акселераторы, 2023</span><span data-en>Accelerators, 2023</span></span>
-        <div class="title" data-ru>Акселератор НТИ и&nbsp;«Физтех.Аэро»</div>
-        <div class="title" data-en>NTI Accelerator and Phystech.Aero</div>
-        <div class="meta" data-ru>В&nbsp;Акселераторе НТИ — проект энергосберегающего уличного светильника, который сам ориентирует солнечные модули. «Физтех.Аэро» — акселерационная программа МФТИ.</div>
-        <div class="meta" data-en>At the NTI Accelerator: an energy-saving street light that orients its own solar panels. Phystech.Aero is MIPT’s accelerator program.</div>
-      </li>
-    </ul>
-  </section>
-
-  <section id="students">
-    <h2><span data-ru>Студентам и&nbsp;дипломникам</span><span data-en>For students</span></h2>
-    <div class="prose">
-      <div data-ru>
-        <p>Руковожу выпускными работами студентов. Сейчас мне ближе всего такие темы:</p>
-        <ul class="interests">
-          <li>компьютерное зрение и&nbsp;нейросети для слежения за&nbsp;движущимися объектами;</li>
-          <li>системы управления поворотными и&nbsp;следящими устройствами;</li>
-          <li>промышленные и&nbsp;коллаборативные роботы: программирование, роботизированные ячейки, моделирование;</li>
-          <li>мобильные роботы на&nbsp;ROS&nbsp;2: навигация, локализация, симуляция;</li>
-          <li>космическая робототехника.</li>
-        </ul>
-        <p>С&nbsp;каждым дипломником встречаемся раз в&nbsp;неделю. Все материалы работы студент ведёт в&nbsp;репозитории на&nbsp;GitHub по&nbsp;<a href="https://github.com/shevchenko-robotics/diploma-template" target="_blank" rel="noopener">шаблону</a>, готовые работы собраны в&nbsp;<a href="https://github.com/vkr-robotics" target="_blank" rel="noopener">vkr-robotics</a>.</p>
-        <p>Если хотите писать диплом со&nbsp;мной, напишите в&nbsp;<a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>: кто вы, где учитесь и&nbsp;какая тема вам интересна. Свою тему тоже можно предложить.</p>
-      </div>
-      <div data-en>
-        <p>I supervise student theses. These are the topics I am most interested in right now:</p>
-        <ul class="interests">
-          <li>computer vision and neural networks for tracking moving objects;</li>
-          <li>control systems for pan-tilt and tracking devices;</li>
-          <li>industrial and collaborative robots: programming, robotic cells, simulation;</li>
-          <li>mobile robots on ROS&nbsp;2: navigation, localization, simulation;</li>
-          <li>space robotics.</li>
-        </ul>
-        <p>I meet each thesis student once a week. Students keep all their work in a GitHub repository based on a <a href="https://github.com/shevchenko-robotics/diploma-template" target="_blank" rel="noopener">template</a>; finished projects are collected in <a href="https://github.com/vkr-robotics" target="_blank" rel="noopener">vkr-robotics</a>.</p>
-        <p>If you would like to do your thesis with me, message me on <a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">Telegram</a>: who you are, where you study, and what topic interests you. You can also propose your own.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="mentions">
-    <h2><span data-ru>Упоминания</span><span data-en>Mentions</span></h2>
-    <ul class="mentions">
-      <li>
-        <a href="https://t.me/msutstankin/10004" target="_blank" rel="noopener"><span data-ru>Рассказал о&nbsp;работе Молодёжного проектного центра СТАНКИНа на&nbsp;форуме студенческих конструкторских бюро в&nbsp;МГТУ им.&nbsp;Н.&nbsp;Э.&nbsp;Баумана</span><span data-en>Presented STANKIN’s Youth Project Center at the student design bureaus forum at Bauman University</span></a>
-        <span class="src"><span data-ru>Telegram-канал МГТУ «СТАНКИН»</span><span data-en>STANKIN Telegram channel</span></span>
-      </li>
-      <li>
-        <a href="https://dpo.stankin.ru/programs/robots/" target="_blank" rel="noopener"><span data-ru>Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и&nbsp;применение»</span><span data-en>Author of the professional training program “Industrial Manipulator Robots: Modern Technologies and Applications”</span></a>
-        <span class="src"><span data-ru>Сайт ДПО МГТУ «СТАНКИН»</span><span data-en>STANKIN professional education site</span></span>
-      </li>
-    </ul>
-  </section>
-
-  <section id="contact">
-    <h2><span data-ru>Связаться</span><span data-en>Contact</span></h2>
-    <div>
-      <p class="contact-big"><a href="https://t.me/m_shevchenko" target="_blank" rel="noopener">@m_shevchenko</a></p>
-      <div class="contact-list">
-        <span data-ru>Быстрее всего — в&nbsp;Telegram, или&nbsp;напишите на&nbsp;почту:</span><span data-en>Telegram is fastest, or send an email:</span>
-        <a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
-        <a href="https://github.com/shevchenko-robotics" target="_blank" rel="me noopener">github.com/shevchenko-robotics</a>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer>© <span id="y">2026</span> <span data-ru>Максим Шевченко</span><span data-en>Maksim Shevchenko</span></footer>
+</span>
+<span class="ctl">
+<span aria-label="Тип движения" class="seg" role="group">
+<button aria-pressed="true" data-move="J" title="Интерполяция в пространстве суставов" type="button">MoveJ</button>
+<button aria-pressed="false" data-move="L" title="Прямолинейное движение схвата" type="button">MoveL</button>
+</span>
+<button aria-pressed="false" class="run" disabled="" id="run" type="button"><span>Пуск</span></button>
+<button id="clear" type="button"><span>Сбросить</span></button>
+</span>
+</div>
+<div aria-hidden="true" class="readout">
+<span class="joints"><span>J1 <b id="a1">0°</b></span><span>J2 <b id="a2">0°</b></span><span>J3 <b id="a3">0°</b></span></span>
+<span class="tcp"><span>X <b id="tx">0</b></span><span>Y <b id="ty">0</b></span><span>мм</span></span>
+</div>
+</div>
+</div>
+<section>
+<div class="side">
+<h2><span>Обо мне</span></h2>
+<img alt="" class="portrait" height="999" loading="lazy" src="/photo.jpg" width="800"/>
+</div>
+<div class="prose">
+<div>
+<p>Больше одиннадцати лет занимаюсь робототехникой. Начинал в РКК «Энергия» с исследований и разработок в космической робототехнике, потом перешёл в университеты.</p>
+<p>Сейчас преподаю в МГТУ им. Н. Э. Баумана и МГТУ «СТАНКИН», веду студенческие проекты, а за рубежом — курс по промышленным роботам на английском языке. Пишу программы повышения квалификации для инженеров и снял видеокурс по промышленной робототехнике.</p>
+<p>Мне интересно, где робот встречается с реальной задачей: манипулятор в цехе или мобильная платформа, которая сама находит дорогу. А в преподавании для меня главное, чтобы мои студенты после выпуска сразу могли работать с настоящим оборудованием.</p>
 </div>
 
+</div>
+</section>
+<section>
+<h2><span>Путь</span></h2>
+<ol class="chain">
+<li>
+<div class="org">РКК «Энергия»</div>
+<div class="what">Исследования и разработки в космической робототехнике.</div>
+
+</li>
+<li class="now">
+<div class="org">МГТУ им. Н. Э. Баумана</div>
+<div class="what">Учился робототехнике и мехатронике, теперь преподаю.</div>
+
+</li>
+<li class="now">
+<div class="org">МГТУ «СТАНКИН»</div>
+<div class="what">Преподавание, лаборатория робототехники, студенческое бюро робототехники: команды, мобильные платформы, соревнования. Команда бюро стала призёром инженерного хакатона РКК «Энергия».</div>
+
+</li>
+<li class="now">
+<div class="org">Преподавание за рубежом</div>
+<div class="what">Курс по программированию и эксплуатации промышленных роботов на английском языке.</div>
+
+</li>
+</ol>
+</section>
+<section>
+<h2><span>С чем работаю</span></h2>
+<div class="kit">
+<div>
+<h3><span>Промышленные роботы</span></h3>
+<ul><li>ABB RobotStudio</li><li>FANUC</li><li>KUKA</li><li>Коллаборативные роботы</li></ul>
+</div>
+<div>
+<h3><span>Мобильные роботы</span></h3>
+<ul><li>ROS 2</li><li>Nav2</li><li>Gazebo</li><li>Компьютерное зрение, OpenCV</li></ul>
+</div>
+<div>
+<h3><span>Программирование</span></h3>
+<ul><li>Python</li><li>C++</li><li>MoveIt</li></ul>
+</div>
+</div>
+</section>
+<section id="works">
+<h2><span>Патенты и публикации</span></h2>
+<ul class="records">
+<li>
+<span class="kind"><span>Патент на изобретение RU 2869712 C1, 2026</span></span>
+<div class="title">Способ управления совместным движением гетерогенной многоагентной системой</div>
+
+<div class="meta">Совместно с А. В. Пешниным, М. А. Гридневым, М. А. Шереужевым. Патентообладатель — МГТУ «СТАНКИН».</div>
+
+</li>
+<li>
+<span class="kind"><span>Программа для ЭВМ RU 2025695805, 2025</span></span>
+<div class="title">Модуль управления пользовательскими контейнерами для образовательной платформы по робототехнике (серверная часть)</div>
+
+<div class="meta">Совместно с М. А. Шереужевым, А. В. Пешниным, Ф. В. Девяткиным. Правообладатель — МГТУ «СТАНКИН».</div>
+
+</li>
+<li>
+<span class="kind"><span>Программа для ЭВМ RU 2023685496, 2023</span></span>
+<div class="title">Регулятор интенсивности освещения (LIV controller)</div>
+
+<div class="meta">Совместно с А. С. Героевым.</div>
+
+</li>
+<li>
+<span class="kind"><span>Статья, 2019</span></span>
+<div class="title">Моделирование червеобразного движения робота-змеи с учётом динамики</div>
+
+<div class="meta">В. А. Польский, А. А. Лукин, М. Ю. Шевченко. Электронный научный журнал «E-Scio.ru».</div>
+
+</li>
+<li>
+<span class="kind"><span>Акселераторы, 2023</span></span>
+<div class="title">Акселератор НТИ и «Физтех.Аэро»</div>
+
+<div class="meta">В Акселераторе НТИ — проект энергосберегающего уличного светильника, который сам ориентирует солнечные модули. «Физтех.Аэро» — акселерационная программа МФТИ.</div>
+
+</li>
+</ul>
+</section>
+<section id="students">
+<h2><span>Студентам и дипломникам</span></h2>
+<div class="prose">
+<div>
+<p>Руковожу выпускными работами студентов. Сейчас мне ближе всего такие темы:</p>
+<ul class="interests">
+<li>компьютерное зрение и нейросети для слежения за движущимися объектами;</li>
+<li>системы управления поворотными и следящими устройствами;</li>
+<li>промышленные и коллаборативные роботы: программирование, роботизированные ячейки, моделирование;</li>
+<li>мобильные роботы на ROS 2: навигация, локализация, симуляция;</li>
+<li>космическая робототехника.</li>
+</ul>
+<p>С каждым дипломником встречаемся раз в неделю. Все материалы работы студент ведёт в репозитории на GitHub по <a href="https://github.com/shevchenko-robotics/diploma-template" rel="noopener" target="_blank">шаблону</a>, готовые работы собраны в <a href="https://github.com/vkr-robotics" rel="noopener" target="_blank">vkr-robotics</a>.</p>
+<p>Если хотите писать диплом со мной, напишите в <a href="https://t.me/m_shevchenko" rel="noopener" target="_blank">Telegram</a>: кто вы, где учитесь и какая тема вам интересна. Свою тему тоже можно предложить.</p>
+</div>
+
+</div>
+</section>
+<section id="mentions">
+<h2><span>Упоминания</span></h2>
+<ul class="mentions">
+<li>
+<a href="https://t.me/msutstankin/10004" rel="noopener" target="_blank"><span>Рассказал о работе Молодёжного проектного центра СТАНКИНа на форуме студенческих конструкторских бюро в МГТУ им. Н. Э. Баумана</span></a>
+<span class="src"><span>Telegram-канал МГТУ «СТАНКИН»</span></span>
+</li>
+<li>
+<a href="https://dpo.stankin.ru/programs/robots/" rel="noopener" target="_blank"><span>Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и применение»</span></a>
+<span class="src"><span>Сайт ДПО МГТУ «СТАНКИН»</span></span>
+</li>
+</ul>
+</section>
+<section id="contact">
+<h2><span>Связаться</span></h2>
+<div>
+<p class="contact-big"><a href="https://t.me/m_shevchenko" rel="noopener" target="_blank">@m_shevchenko</a></p>
+<div class="contact-list">
+<span>Быстрее всего — в Telegram, или напишите на почту:</span>
+<a href="mailto:inbox@maksimshevchenko.ru">inbox@maksimshevchenko.ru</a>
+<a href="https://github.com/shevchenko-robotics" rel="me noopener" target="_blank">github.com/shevchenko-robotics</a>
+</div>
+</div>
+</section>
+</main>
+<footer>© <span id="y">2026</span> <span>Максим Шевченко</span></footer>
+</div>
 <script>
 (function(){
-  /* language */
-  var root=document.documentElement;
-  var meta={ru:{t:"Максим Шевченко",d:"Инженер-робототехник и преподаватель. Космическая, промышленная и мобильная робототехника, инженерное образование."},
-            en:{t:"Maksim Shevchenko",d:"Robotics engineer and lecturer. Space, industrial and mobile robotics, engineering education."}};
-  function setLang(l){
-    l=l==="en"?"en":"ru"; root.lang=l; document.title=meta[l].t;
-    document.querySelector('meta[name="description"]').content=meta[l].d;
-    document.querySelectorAll("[data-set-lang]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.setLang===l))});
-    document.getElementById("arm").setAttribute("aria-label",l==="en"?"Robot arm following the cursor":"Робот-манипулятор следует за курсором");
-  }
-  var q=new URLSearchParams(location.search).get("lang"),saved=null;
-  try{saved=localStorage.getItem("lang")}catch(e){}
-  setLang(q||saved||((navigator.language||"ru").toLowerCase().indexOf("ru")===0?"ru":"en"));
-  document.querySelectorAll("[data-set-lang]").forEach(function(b){
-    b.addEventListener("click",function(){setLang(b.dataset.setLang);try{localStorage.setItem("lang",b.dataset.setLang)}catch(e){}});
-  });
+  /* language is fixed per page (/ = Russian, /en/ = English); the build step strips the other language */
   document.getElementById("y").textContent=new Date().getFullYear();
 
   /* robot arm: planar 3-link manipulator with joint limits and self-collision.
@@ -685,8 +648,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function setRunning(on){
     running=on&&wps.length>1;
     $("run").setAttribute("aria-pressed",String(running));
-    $("run").querySelector("[data-ru]").textContent=running?"Стоп":"Пуск";
-    $("run").querySelector("[data-en]").textContent=running?"Stop":"Run";
+    $("run").textContent=lang()==="en"?(running?"Stop":"Run"):(running?"Стоп":"Пуск");
     seg=null;
     if(running){nextSeg(0)}else{fkInto(q,P);qd=q.slice();cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y}}
   }
