@@ -611,7 +611,7 @@ html[lang="en"] [data-en]{display:revert!important}
     }
     $("tx").textContent=Math.round((P[3].x-base.x)*MM);
     $("ty").textContent=Math.round((base.y-P[3].y)*MM);
-    if(Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D)status=lang()==="en"?"singularity: arm fully stretched":"сингулярность: рука вытянута";
+    if(!idle&&Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D)status=lang()==="en"?"singularity: arm fully stretched":"сингулярность: рука вытянута";
     if(reconf)status=lang()==="en"?"changing arm configuration to reach the point":"меняю конфигурацию, чтобы дотянуться";
     if(blocked&&!status)status=lang()==="en"?"the arm cannot reach this point":"манипулятор не дотягивается до этой точки";
     var st=$("singTxt");if(st.textContent!==status)st.textContent=status;
@@ -619,15 +619,16 @@ html[lang="en"] [data-en]{display:revert!important}
 
   /* fading tool path */
   var trail=[],TR_LIFE=2400,pool=[];
+  function trLife(){return idle?6500:TR_LIFE}
   function drawTrail(now){
     var last=trail[trail.length-1],tip=P[3];
     if(!last||Math.hypot(tip.x-last.x,tip.y-last.y)>1.5)trail.push({x:tip.x,y:tip.y,t:now});
-    while(trail.length&&now-trail[0].t>TR_LIFE)trail.shift();
+    var life=trLife();while(trail.length&&now-trail[0].t>life)trail.shift();
     var g=$("trail");
     for(var i=1;i<trail.length;i++){
       var ln=pool[i];
       if(!ln){ln=document.createElementNS(NS,"line");g.appendChild(ln);pool[i]=ln}
-      var k=1-(now-trail[i].t)/TR_LIFE;
+      var k=1-(now-trail[i].t)/life;
       ln.setAttribute("x1",trail[i-1].x);ln.setAttribute("y1",trail[i-1].y);
       ln.setAttribute("x2",trail[i].x);ln.setAttribute("y2",trail[i].y);
       ln.setAttribute("stroke-width",(1+2.5*k).toFixed(2));ln.setAttribute("opacity",(.85*k).toFixed(3));
@@ -749,7 +750,9 @@ html[lang="en"] [data-en]{display:revert!important}
   cell.addEventListener("pointercancel",release);
 
   /* demo motion: smooth oscillation in joint space, well inside the limits and away from the stretched singularity */
-  function demoQ(s){return [(90+42*Math.sin(s*.33))*D,(-62+30*Math.sin(s*.47+1))*D,(-58+34*Math.sin(s*.61+2))*D]}
+  /* sum of sines with incommensurate frequencies: quasi-periodic, never repeats exactly */
+  var DEMO=[[90,[[40,.29,0],[14,.71,1.3],[7,1.13,2.1]]],[0,[[46,.37,.4],[16,.83,2.6],[7,1.31,.9]]],[0,[[46,.43,1.7],[18,.97,.3],[8,1.47,2.8]]]],DEMO_SPEED=1.7;
+  function demoQ(s){s*=DEMO_SPEED;return DEMO.map(function(j){var v=j[0];j[1].forEach(function(h){v+=h[0]*Math.sin(h[1]*s+h[2])});return v*D})}
 
   /* ---------- main loop ---------- */
   fkInto(q,P);draw();
@@ -765,7 +768,7 @@ html[lang="en"] [data-en]{display:revert!important}
         if(!idle){idle={t:now,from:q.slice(),s0:(now-t0)/1000};reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
         var w=Math.min(1,(now-idle.t)/3000);w=w*w*(3-2*w);
         var dqv=demoQ((now-t0)/1000),qt=[0,1,2].map(function(i){return idle.from[i]+(dqv[i]-idle.from[i])*w});
-        drive(qt,dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
+        if(!check(qt))q=qt;else drive(qt,dt);qd=q.slice();fkInto(q,P);cur={x:P[3].x,y:P[3].y};goal={x:cur.x,y:cur.y};blocked=false;
         draw();drawTrail(now);requestAnimationFrame(tick);return;
       }
       idle=null;
