@@ -24,6 +24,7 @@ def page_for(lang):
     for el in soup.select(f"[data-{lang}]"):
         del el[f"data-{lang}"]
     soup.html["lang"] = lang
+    soup.title.string = "Максим Шевченко — резюме" if lang == "ru" else "Maksim Shevchenko — CV"
     d = datetime.date.today()
     soup.select_one(".upd").string = (f"{d.day} {MONTHS_RU[d.month - 1]} {d.year}" if lang == "ru" else d.strftime("%B %Y"))
     return str(soup)
