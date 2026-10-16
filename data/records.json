@@ -44,14 +44,39 @@
   ],
   "mentions": [
     {
+      "url": "https://dpo.stankin.ru/programs/robots/",
+      "text": {"ru": "Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и применение»", "en": "Author of the professional training program “Industrial Manipulator Robots: Modern Technologies and Applications”"},
+      "source": {"ru": "Сайт ДПО МГТУ «СТАНКИН»", "en": "STANKIN professional education site"}
+    },
+    {
+      "url": "https://t.me/msutstankin/16182",
+      "text": {"ru": "Рассказал о проектировании робототехнических систем для обработки крупногабаритных криволинейных поверхностей на стратегической сессии «Морская робототехника» в Мурманске", "en": "Presented the design of robotic systems for processing large curved surfaces at the Marine Robotics strategic session in Murmansk"},
+      "source": {"ru": "Telegram-канал МГТУ «СТАНКИН»", "en": "STANKIN Telegram channel"}
+    },
+    {
+      "url": "https://vkvideo.ru/playlist/-214524833_32/video-214524833_456246472?linked=1",
+      "text": {"ru": "Эксперт научного шоу «Первые в науке. Робототехника»: где учат на робототехника и как создают роботов", "en": "Expert on the science show “First in Science. Robotics”: where to study robotics and how robots are built (in Russian)"},
+      "source": {"ru": "VK Видео", "en": "VK Video"}
+    },
+    {
+      "url": "https://t.me/msutstankin/13058",
+      "text": {"ru": "Выступил на конференции Концерна ВКО «Алмаз-Антей» о роботизации предприятий: чем университет может помочь — от аудита и НИОКР до внедрения роботизированных комплексов и подготовки персонала", "en": "Spoke at an Almaz-Antey conference on factory robotization: how a university can help, from audits and R&D to deploying robotic cells and training staff"},
+      "source": {"ru": "Telegram-канал МГТУ «СТАНКИН»", "en": "STANKIN Telegram channel"}
+    },
+    {
+      "url": "https://t.me/msutstankin/11239",
+      "text": {"ru": "Прочитал популярную лекцию «Роботы в космосе» ко Дню космонавтики", "en": "Gave a public lecture “Robots in Space” for Cosmonautics Day"},
+      "source": {"ru": "Telegram-канал МГТУ «СТАНКИН»", "en": "STANKIN Telegram channel"}
+    },
+    {
       "url": "https://t.me/msutstankin/10004",
       "text": {"ru": "Рассказал о работе Молодёжного проектного центра СТАНКИНа на форуме студенческих конструкторских бюро в МГТУ им. Н. Э. Баумана", "en": "Presented STANKIN’s Youth Project Center at the student design bureaus forum at Bauman University"},
       "source": {"ru": "Telegram-канал МГТУ «СТАНКИН»", "en": "STANKIN Telegram channel"}
     },
     {
-      "url": "https://dpo.stankin.ru/programs/robots/",
-      "text": {"ru": "Разработчик программы повышения квалификации «Промышленные манипуляционные роботы: современные технологии и применение»", "en": "Author of the professional training program “Industrial Manipulator Robots: Modern Technologies and Applications”"},
-      "source": {"ru": "Сайт ДПО МГТУ «СТАНКИН»", "en": "STANKIN professional education site"}
+      "url": "https://t.me/msutstankin/9551",
+      "text": {"ru": "Представлял СТАНКИН на стратегической сессии о перспективах образовательной робототехники в России на площадке «Сбера»", "en": "Represented STANKIN at a Sber strategic session on the future of educational robotics in Russia"},
+      "source": {"ru": "Telegram-канал МГТУ «СТАНКИН»", "en": "STANKIN Telegram channel"}
     }
   ]
 }
