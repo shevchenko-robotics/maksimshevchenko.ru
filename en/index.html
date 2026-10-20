@@ -484,7 +484,8 @@ html[lang="en"] [data-en]{display:revert!important}
   var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
   var D=Math.PI/180,ORIGIN={x:260,y:400},FLOOR_Y=440,MM=4,RED="#C2413A";
-  var VMAX=1.3; /* rad/s per joint (manual control and MoveL) */
+  var VMAX=1.3; /* rad/s per joint (MoveL) */
+  var TRACK_VMAX=1.1,TRACK_RATE=6; /* following the pointer: joint speed limit, rad/s, and how fast the IK target catches up with the pointer, 1/s */
   var IDLE_MS=5000; /* pause after the last pointer or keyboard input before the automatic demo starts */
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var lang=function(){return document.documentElement.lang==="en"?"en":"ru"};
@@ -1082,7 +1083,7 @@ html[lang="en"] [data-en]{display:revert!important}
         drawTrail(now);requestAnimationFrame(tick);return;
       }
       idle=null;
-      var k=reduce?1:.12;
+      var k=reduce?1:1-Math.exp(-TRACK_RATE*dt); /* same feel at 60 and 120 Hz */
       cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
       if(reconf){
         /* all joints start and stop together with smooth acceleration (like MoveJ); the leg ends exactly on its target */
@@ -1096,7 +1097,7 @@ html[lang="en"] [data-en]{display:revert!important}
         blocked=false;
       }else{
         var r=ikFrom(qd,cur,reduce?120:12);qd=r.q;
-        drive(qd,dt);
+        drive(qd,dt,TRACK_VMAX);
         blocked=r.err>6&&!reachable(goal);
         if(r.err>4&&reachable(goal)&&now-stillSince>700&&Math.hypot(cur.x-goal.x,cur.y-goal.y)<2){
           var c=cellCfg(goal);
