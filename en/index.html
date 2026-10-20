@@ -485,6 +485,7 @@ html[lang="en"] [data-en]{display:revert!important}
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
   var D=Math.PI/180,ORIGIN={x:260,y:400},FLOOR_Y=440,MM=4,RED="#C2413A";
   var VMAX=1.3; /* rad/s per joint (manual control and MoveL) */
+  var IDLE_MS=5000; /* pause after the last pointer or keyboard input before the automatic demo starts */
   var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var lang=function(){return document.documentElement.lang==="en"?"en":"ru"};
   function T(ru,en){return lang()==="en"?en:ru}
@@ -805,10 +806,10 @@ html[lang="en"] [data-en]{display:revert!important}
   /* ---------- joint gauges: a dial around each drive with green / yellow / red zones and a pointer ---------- */
   function zoneMargins(i){var r=M.LIM[i][1]-M.LIM[i][0];return {red:Math.max(4*D,.05*r),yel:Math.max(12*D,.15*r)}}
   function zoneOf(i,v){var m=zoneMargins(i),d=Math.min(v-M.LIM[i][0],M.LIM[i][1]-v);return d<m.red?"r":d<m.red+m.yel?"y":"g"}
-  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[],showGauges=false; /* off by default; on only after the visitor turns them on */
-  try{showGauges=localStorage.getItem("gauges")==="on"}catch(_){}
+  var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[],showGauges=false; /* off on every page load; on only after the visitor presses the button (the choice is not remembered) */
+  try{localStorage.removeItem("gauges")}catch(_){} /* drop the choice remembered by earlier versions */
   function setGauges(on){
-    showGauges=on;try{localStorage.setItem("gauges",on?"on":"off")}catch(_){}
+    showGauges=on;
     gauges.forEach(function(G){G.g.style.display=on?"":"none"});
     var b=$("gaugeBtn");b.setAttribute("aria-pressed",String(on));
   }
@@ -1074,7 +1075,7 @@ html[lang="en"] [data-en]{display:revert!important}
     var dt=Math.min(.05,(now-prev)/1000);prev=now;
     if(running){blocked=false;stepProgram(dt)}
     else{
-      var quiet=!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
+      var quiet=!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:IDLE_MS)&&!wps.length&&!reduce;
       if(quiet&&reachList.length){
         if(!idle){idle={t:now};startDemo();reconf=null;engaged=false;$("target").setAttribute("opacity","0");flagBad(false)}
         stepDemo(dt);qd=q.slice();draw();cur=pt(TCP.x,TCP.y);goal=pt(cur.x,cur.y);blocked=false;
