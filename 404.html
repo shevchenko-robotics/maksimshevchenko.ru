@@ -8,11 +8,13 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script>try{var th=localStorage.getItem("theme");if(th==="light"||th==="dark")document.documentElement.setAttribute("data-theme",th)}catch(e){}</script>
 <style>
 @font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/onest-cyrillic-wght-normal.woff2) format("woff2");unicode-range:U+0400-045F}
 @font-face{font-family:"Onest";font-style:normal;font-display:swap;font-weight:100 900;src:url(/fonts/onest-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
 :root{--bg:#E9ECEF;--panel:#DDE2E6;--ink:#1B2430;--steel:#66737F;--safety:#F2B705;--link:#1F4E79}
-@media (prefers-color-scheme:dark){:root{--bg:#161B21;--panel:#1E252D;--ink:#E4E8EC;--steel:#94A1AD;--link:#9CC3EA}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161B21;--panel:#1E252D;--ink:#E4E8EC;--steel:#94A1AD;--link:#9CC3EA}}
+:root[data-theme="dark"]{--bg:#161B21;--panel:#1E252D;--ink:#E4E8EC;--steel:#94A1AD;--link:#9CC3EA}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:400 18px/1.6 "Onest",system-ui,sans-serif;padding:24px}
 main{max-width:560px;width:100%}
