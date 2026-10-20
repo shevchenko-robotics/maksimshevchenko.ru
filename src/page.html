@@ -433,7 +433,7 @@ html[lang="en"] [data-en]{display:revert!important}
   /* robot arm demo with three planar kinematics: serial 3R arm, palletizer (parallelogram) and parallel 5-bar.
      Base frame origin is at (260,400) in SVG units; 1 unit = 4 mm; Y points up in the readout.
      Shared engine: numeric-Jacobian damped least squares IK, joint speed limit, reachable-area map,
-     random-point demo, teach mode (MoveJ / MoveL), pointer and keyboard input. */
+     random-point demo, teach mode (MoveJ / MoveL), pointer and keyboard input (pointer tracking is armed by entering the arm panel and disarmed by the demo). */
   var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
   var D=Math.PI/180,ORIGIN={x:260,y:400},FLOOR_Y=440,MM=4,RED="#C2413A";
@@ -674,13 +674,15 @@ html[lang="en"] [data-en]{display:revert!important}
   function check(qq){return M.check(qq)}
   function clampQ(qq){for(var i=0;i<M.n;i++)qq[i]=Math.max(M.LIM[i][0],Math.min(M.LIM[i][1],qq[i]));return qq}
 
-  /* DLS with a numeric Jacobian; for redundant models a "stay away from limits" term works in the null space */
-  function ikFrom(v,t,iters){
+  /* DLS with a numeric Jacobian; for redundant models a "stay away from limits" term works in the null space.
+     settle=true keeps iterating after the TCP is on target, so the null-space term brings the pose to rest:
+     a reconfiguration then ends exactly in the pose the tracking IK would drift to, with no extra motion afterwards */
+  function ikFrom(v,t,iters,settle){
     var lam2=64,n=M.n,h=1e-4,e=0;v=v.slice();
     for(var k=0;k<iters;k++){
       var p=M.tcp(v);if(!isFinite(p.x))break;
       var ex=t.x-p.x,ey=-(t.y-p.y);e=Math.sqrt(ex*ex+ey*ey);
-      if(e<.25&&k>2)break;
+      if(e<.25&&k>2&&!settle)break;
       var J=[];
       for(var i=0;i<n;i++){var vp=v.slice(),vm=v.slice();vp[i]+=h;vm[i]-=h;var a=M.tcp(vp),b=M.tcp(vm);J.push([(a.x-b.x)/(2*h),-(a.y-b.y)/(2*h)])}
       if(!J.every(function(r){return isFinite(r[0])&&isFinite(r[1])}))break;
@@ -941,23 +943,30 @@ html[lang="en"] [data-en]{display:revert!important}
   function toSvg(e){var p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
   function showTarget(p){var tg=$("target");tg.setAttribute("transform","translate("+p.x+" "+p.y+")");tg.setAttribute("opacity","1")}
   function inPanel(p){return pt(Math.max(0,Math.min(520,p.x)),Math.max(0,Math.min(520,p.y)))}
-  var inside=false,press=null;
+  /* Tracking is armed only when the pointer enters the arm panel (#cell). Once armed, the arm follows the pointer
+     anywhere over the hero until the next automatic demo starts; the demo disarms it, so the pointer has to
+     come back into the panel to take control again. */
+  var inside=false,engaged=false,press=null;
+  function stopReconf(){if(reconf){reconf=null;qd=q.slice()}} /* continue tracking from the pose the arm is actually in */
+  function inCellEl(e){return !!(e.target&&e.target.closest&&e.target.closest("#cell"))}
   function steer(e){
     var p=toSvg(e);lastMove=performance.now();showTarget(p);
-    var inCell=e.target.closest&&e.target.closest("#cell");
-    flagBad(!!inCell&&!reachable(p));
-    if(!running){var g=inPanel(p);if(Math.hypot(g.x-goal.x,g.y-goal.y)>2){stillSince=performance.now();reconf=null}goal=g}
+    flagBad(inCellEl(e)&&!reachable(p));
+    if(!running){var g=inPanel(p);if(Math.hypot(g.x-goal.x,g.y-goal.y)>2){stillSince=performance.now();stopReconf()}goal=g}
     return p;
   }
-  hero.addEventListener("pointerenter",function(e){if(e.pointerType==="mouse")inside=true});
+  cell.addEventListener("pointerenter",function(e){if(e.pointerType==="mouse"){inside=true;engaged=true}});
+  cell.addEventListener("pointerleave",function(e){if(e.pointerType==="mouse")inside=false});
   hero.addEventListener("pointerleave",function(e){inside=false;if(e.pointerType==="mouse"){$("target").setAttribute("opacity","0");flagBad(false)}});
   hero.addEventListener("pointermove",function(e){
     if(e.pointerType!=="mouse"&&!press)return;
+    if(e.pointerType==="mouse"&&inCellEl(e)){inside=true;engaged=true} /* pointer already inside the panel when the page loads */
+    if(!engaged)return;
     steer(e);
     if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>10)press.drag=true;
   });
   cell.addEventListener("pointerdown",function(e){
-    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false};
+    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false};engaged=true;
     try{cell.setPointerCapture(e.pointerId)}catch(_){}
     steer(e);
   });
@@ -978,7 +987,7 @@ html[lang="en"] [data-en]{display:revert!important}
     if(e.key==="ArrowLeft")dx=-step;else if(e.key==="ArrowRight")dx=step;else if(e.key==="ArrowUp")dy=-step;else if(e.key==="ArrowDown")dy=step;
     if(dx||dy){
       e.preventDefault();if(running)return;
-      goal=inPanel(pt(goal.x+dx,goal.y+dy));stillSince=performance.now();reconf=null;lastMove=performance.now();
+      engaged=true;goal=inPanel(pt(goal.x+dx,goal.y+dy));stillSince=performance.now();stopReconf();lastMove=performance.now();
       showTarget(goal);flagBad(!reachable(goal));
     }else if(e.key==="Enter"){e.preventDefault();addPoint(pt(goal.x,goal.y));lastMove=performance.now()}
     else if(e.key==="Escape"){setRunning(false);wps=[];renderWps();$("msg").textContent=kbdMsg}
@@ -1020,7 +1029,7 @@ html[lang="en"] [data-en]{display:revert!important}
     else{
       var quiet=!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:9000)&&!wps.length&&!reduce;
       if(quiet&&reachList.length){
-        if(!idle){idle={t:now};startDemo();reconf=null;$("target").setAttribute("opacity","0");flagBad(false)}
+        if(!idle){idle={t:now};startDemo();reconf=null;engaged=false;$("target").setAttribute("opacity","0");flagBad(false)}
         stepDemo(dt);qd=q.slice();draw();cur=pt(TCP.x,TCP.y);goal=pt(cur.x,cur.y);blocked=false;
         drawTrail(now);requestAnimationFrame(tick);return;
       }
@@ -1028,10 +1037,14 @@ html[lang="en"] [data-en]{display:revert!important}
       var k=reduce?1:.12;
       cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
       if(reconf){
-        var tg=reconf.legs[0];drive(tg,dt,.8);
-        var dmax=0;for(var i=0;i<M.n;i++)dmax=Math.max(dmax,Math.abs(tg[i]-q[i]));
-        if(dmax<.01){reconf.legs.shift();if(!reconf.legs.length){reconf=null;qd=q.slice();cur=pt(TCP.x,TCP.y)}}
-        else if(++reconf.frames>600)reconf=null;
+        /* all joints start and stop together with smooth acceleration (like MoveJ); the leg ends exactly on its target */
+        var leg=reconf.legs[0];
+        if(!leg.a){leg.a=q.slice();var dm=0;for(var i=0;i<M.n;i++)dm=Math.max(dm,Math.abs(leg.b[i]-leg.a[i]));leg.dur=reduce?0:Math.max(.35,dm/.8);leg.t=0}
+        leg.t=leg.dur?Math.min(1,leg.t+dt/leg.dur):1;
+        var nq=lerpQ(leg.a,leg.b,ease(leg.t));
+        if(!check(nq))q=nq;else reconf.stuck++;
+        if(leg.t>=1){reconf.legs.shift();if(!reconf.legs.length)reconf=null}
+        if(!reconf||reconf.stuck>30){reconf=null;qd=q.slice();var tp=M.tcp(q);cur=pt(tp.x,tp.y)}
         blocked=false;
       }else{
         var r=ikFrom(qd,cur,reduce?120:12);qd=r.q;
@@ -1039,7 +1052,11 @@ html[lang="en"] [data-en]{display:revert!important}
         blocked=r.err>6&&!reachable(goal);
         if(r.err>4&&reachable(goal)&&now-stillSince>700&&Math.hypot(cur.x-goal.x,cur.y-goal.y)<2){
           var c=cellCfg(goal);
-          if(c){var sol=ikFrom(c,goal,150);if(sol.err<2)reconf={legs:planJoint(sol.q),frames:0}}
+          if(c){
+            var sol=ikFrom(c,goal,150);
+            if(sol.err<2){var rest=ikFrom(sol.q,goal,240,true);if(rest.err<2&&!check(rest.q))sol=rest}
+            if(sol.err<2)reconf={legs:planJoint(sol.q).map(function(b){return {b:b}}),stuck:0};
+          }
         }
       }
     }
