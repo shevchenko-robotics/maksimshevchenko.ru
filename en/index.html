@@ -113,20 +113,21 @@ h1 span{display:block}
 .readout .joints,.readout .tcp{display:flex;gap:12px}
 .readout .tcp{gap:8px;margin-left:auto}
 @media (max-width:520px){.readout{flex-wrap:wrap;row-gap:1px;bottom:5px;line-height:1.2}.readout .joints{gap:10px}}
-.readout label{white-space:nowrap}
+.readout label{white-space:nowrap;pointer-events:auto;cursor:text}
 /* the values double as inputs: type an angle or a coordinate, Enter moves the arm */
 .readout input{pointer-events:auto;font:inherit;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);background:transparent;width:3.6ch;padding:0 1px;margin:0;border:0;border-bottom:1px dashed var(--rule);border-radius:0;text-align:right;cursor:text}
 .readout input.wide{width:4.6ch}
 .readout input:hover{border-bottom-color:var(--steel)}
 .readout input:focus{outline:none;background:var(--bg);border-bottom:1.5px solid var(--ink)}
 .readout input:focus-visible{outline:3px solid var(--safety);outline-offset:1px}
+.readout input.pending{color:#C2413A;border-bottom:1.5px dashed #C2413A}
 .readout input[readonly]{border-bottom-color:transparent;cursor:default}
 @media (pointer:coarse){.readout input{font-size:16px}} /* iOS zooms into inputs smaller than 16px */
 .touch-only{display:none}
 @media (pointer:coarse){.touch-only{display:inline}.mouse-only{display:none}}
 
 /* teach pendant strip */
-.pendant{position:absolute;left:16px;right:190px;top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--steel)}
+.pendant{position:absolute;left:16px;right:236px;top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--steel)}
 .pendant .msg{padding:4px 4px}
 .pendant .msg.warn{color:#C2413A}
 .pendant button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:4px 10px;border-radius:8px;line-height:1.4}
@@ -137,6 +138,9 @@ h1 span{display:block}
 .pendant .run[aria-pressed="true"]{background:var(--safety);border-color:var(--ink)}
 .pendant .ctl{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 .cell.has-points .pendant .ctl{display:flex}
+.pendant .addpt{display:none}
+.cell.manual .pendant .addpt{display:inline-block}
+@media (max-width:520px){.pendant{top:58px;right:52px}}
 
 /* sections */
 section{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px 48px;padding:56px 0;border-top:1px solid var(--rule)}
@@ -264,7 +268,7 @@ html[lang="en"] [data-en]{display:revert!important}
 </div>
 </div>
 <div aria-describedby="kbdHelp" class="cell" id="cell" tabindex="0">
-<p class="sr-only" id="kbdHelp"><span>Keyboard: arrow keys move the gripper, hold Shift to move faster, Enter adds a program point, Esc clears the program.</span></p>
+<p class="sr-only" id="kbdHelp"><span>Keyboard: arrow keys move the gripper, hold Shift to move faster, Enter adds a program point, Esc clears the program. In manual mode the arrows move the gripper by 1 mm, with Shift by 10 mm; angles and coordinates are typed into the fields below the panel.</span></p>
 <svg aria-label="Robot arm following the cursor" id="arm" role="img" viewbox="0 0 520 520">
 <g fill="none">
 <defs>
@@ -278,6 +282,7 @@ html[lang="en"] [data-en]{display:revert!important}
 <rect fill="url(#hatch)" height="520" id="noreach" mask="url(#nrMask)" opacity="0" width="520" x="0" y="0"></rect>
 <text fill="#C2413A" font-family="inherit" font-size="13" id="singTxt" stroke="none" text-anchor="middle" x="260" y="463"></text>
 <line stroke="var(--steel)" stroke-width="2" x1="40" x2="480" y1="440" y2="440"></line>
+<g fill="var(--steel)" id="ruler" stroke="var(--steel)"></g>
 <g id="path"></g>
 <g id="trail" stroke="var(--link)" stroke-linecap="round"></g>
 <g id="wps"></g>
@@ -290,12 +295,14 @@ html[lang="en"] [data-en]{display:revert!important}
 </svg>
 <div aria-label="Тип кинематики / Kinematics" class="kin" id="kin" role="group">
 <button aria-pressed="false" class="tog" id="gaugeBtn" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M6 21a10 10 0 0 1 20 0" stroke-width="2.4"></path><path d="M16 21 L22 13" stroke-width="2.4"></path><circle cx="16" cy="21" fill="currentColor" r="2.2" stroke="none"></circle><path d="M6 21h2.5M23.5 21H26" stroke-width="2"></path></svg></button>
+<button aria-pressed="false" class="tog" id="manBtn" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><rect height="15" rx="3" stroke-width="2.2" width="24" x="4" y="9"></rect><path d="M9 14h1.5M15 14h1.5M21 14h1.5M10 19h12" stroke-width="2.2"></path></svg></button>
 <span aria-hidden="true" class="sep"></span>
 <button aria-pressed="true" data-kin="serial" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M7 29h12" stroke-width="2.4"></path><path d="M13 27 L10 14 L21 8 L26 12" stroke-width="3.2"></path><circle cx="13" cy="27" fill="currentColor" r="2.2" stroke="none"></circle><circle cx="10" cy="14" fill="currentColor" r="2" stroke="none"></circle><circle cx="21" cy="8" fill="currentColor" r="2" stroke="none"></circle></svg></button>
 <button aria-pressed="false" data-kin="pallet" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M5 29h12" stroke-width="2.4"></path><path d="M11 26 L13 11 L27 13" stroke-width="3"></path><path d="M11 26 L7 24.5 L9 9.5 L13 11" stroke-width="1.6"></path><path d="M27 13 V19 M24 19 H30" stroke-width="2.2"></path></svg></button>
 <button aria-pressed="false" data-kin="fivebar" type="button"><svg aria-hidden="true" viewbox="0 0 32 32"><path d="M3 29h26" stroke-width="2.4"></path><path d="M10 26 L5 15 L16 7 L27 15 L22 26" stroke-width="2.6"></path><circle cx="10" cy="26" fill="currentColor" r="2.2" stroke="none"></circle><circle cx="22" cy="26" fill="currentColor" r="2.2" stroke="none"></circle><circle cx="16" cy="7" fill="currentColor" r="2.2" stroke="none"></circle></svg></button>
 </div>
 <div class="pendant" id="pendant">
+<button class="addpt" id="addPt" type="button"><span>+ Point</span></button>
 <span class="msg" id="msg">
 
 <span><span class="mouse-only">Move the cursor and the arm follows. Click to add a program point.</span><span class="touch-only">Drag to steer the arm. A short tap adds a program point.</span></span>
@@ -529,7 +536,12 @@ html[lang="en"] [data-en]{display:revert!important}
      random-point demo, teach mode (MoveJ / MoveL), pointer and keyboard input (pointer tracking is armed by entering the arm panel and disarmed by the demo). */
   var svg=document.getElementById("arm"),cell=document.getElementById("cell"),hero=document.querySelector(".hero");
   var NS="http://www.w3.org/2000/svg",$=function(id){return document.getElementById(id)};
-  var D=Math.PI/180,ORIGIN={x:260,y:400},FLOOR_Y=440,MM=4,RED="#C2413A";
+  var D=Math.PI/180,ORIGIN={x:260,y:400},FLOOR_Y=440,RED="#C2413A";
+  /* coordinates are in real on-screen millimetres (CSS mm, 96 px = 25.4 mm): MMU = mm per SVG unit, follows the panel size.
+     Base frame: X from the axis of the base, Y up from the floor */
+  var PX_MM=96/25.4,MMU=.26;
+  function toMm(p){return {x:(p.x-ORIGIN.x)*MMU,y:(FLOOR_Y-p.y)*MMU}}
+  function fromMm(m){return pt(ORIGIN.x+m.x/MMU,FLOOR_Y-m.y/MMU)}
   var VMAX=1.3; /* rad/s per joint (MoveL) */
   var TRACK_VMAX=1.1,TRACK_RATE=6; /* following the pointer: joint speed limit, rad/s, and how fast the IK target catches up with the pointer, 1/s */
   var IDLE_MS=5000; /* pause after the last pointer or keyboard input before the automatic demo starts */
@@ -906,13 +918,14 @@ html[lang="en"] [data-en]{display:revert!important}
       wrap.style.display="";
       var atLim=Math.min(q[i]-M.LIM[i][0],M.LIM[i][1]-q[i])<1.5*D,cap=$("j"+(i+1)),z=zoneOf(i,q[i]);
       if(cap)cap.setAttribute("fill",ZC[z]);
-      if(document.activeElement!==b)b.value=fmt((q[i]-zero(i))/D);
+      if(document.activeElement!==b&&!b.classList.contains("pending"))b.value=fmt((q[i]-zero(i))/D);
       b.style.color=z==="g"?"":ZC[z];b.readOnly=running;
       if(atLim&&!status)status=T("J"+(i+1)+" на упоре","J"+(i+1)+" at its limit");
     }
     var tx=$("tx"),ty=$("ty");tx.readOnly=ty.readOnly=running;
-    if(document.activeElement!==tx)tx.value=fmt((TCP.x-ORIGIN.x)*MM);
-    if(document.activeElement!==ty)ty.value=fmt((ORIGIN.y-TCP.y)*MM);
+    var tm=toMm(TCP);
+    if(document.activeElement!==tx&&!tx.classList.contains("pending"))tx.value=fmt(tm.x);
+    if(document.activeElement!==ty&&!ty.classList.contains("pending"))ty.value=fmt(tm.y);
     $("tcp").setAttribute("cx",TCP.x.toFixed(2));$("tcp").setAttribute("cy",TCP.y.toFixed(2));
     if(!idle){var ms=M.status(q);if(ms)status=ms}
     if(reconf&&!hold)status=T("меняю конфигурацию, чтобы дотянуться","changing arm configuration to reach the point");
@@ -969,17 +982,17 @@ html[lang="en"] [data-en]{display:revert!important}
     if(!wps.length)$("msg").innerHTML=msgDefault;
     if(hold)$("msg").textContent=holdTxt();
   }
-  function addPoint(p){
+  function addPoint(p,exactQ){
     if(running)return;
-    if(!reachable(p)){flagBad(true);say("Точка вне зоны досягаемости","This point is out of reach",true);return}
+    if(!exactQ&&!reachable(p)){flagBad(true);say("Точка вне зоны досягаемости","This point is out of reach",true);return}
     if(wps.length>=MAXP){say("Не больше "+MAXP+" точек","Up to "+MAXP+" points",true);return}
-    var r=ikFrom(cellCfg(p)||q,p,120);
+    var r=exactQ?{q:exactQ.slice()}:ikFrom(cellCfg(p)||q,p,120);
     wps.push({x:p.x,y:p.y,q:r.q});renderWps();
   }
   function flagBad(b){$("target").classList.toggle("bad",b)}
   function setRunning(on){
     running=on&&wps.length>1;
-    if(running){if(hold)releaseHold();var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("man"))ae.blur()}
+    if(running){var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("man"))ae.blur()}
     $("run").setAttribute("aria-pressed",String(running));
     $("run").textContent=running?T("Стоп","Stop"):T("Пуск","Run");
     seg=null;
@@ -1023,7 +1036,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function setModel(id,animate){
     var g=$("armg");
     function apply(){
-      M=MODELS[id];buildToken++;q=M.q0.slice();qd=q.slice();hold=false;manQ=manP=null;
+      M=MODELS[id];buildToken++;q=M.q0.slice();qd=q.slice();manQ=manP=null;clearPend();
       setRunning(false);wps=[];renderWps();reconf=null;idle=null;demo=null;blocked=false;trail=[];
       reach=null;reachList=[];$("noreach").setAttribute("opacity","0");
       g.innerHTML="";drawModel=M.build(g);buildGauges(g);
@@ -1061,7 +1074,7 @@ html[lang="en"] [data-en]{display:revert!important}
   }
   cell.addEventListener("pointerenter",function(e){if(e.pointerType==="mouse"){inside=true;engaged=true}});
   cell.addEventListener("pointerleave",function(e){if(e.pointerType==="mouse")inside=false});
-  hero.addEventListener("pointerleave",function(e){inside=false;if(e.pointerType==="mouse"){$("target").setAttribute("opacity","0");flagBad(false)}});
+  hero.addEventListener("pointerleave",function(e){inside=false;if(e.pointerType==="mouse"&&!hold){$("target").setAttribute("opacity","0");flagBad(false)}});
   hero.addEventListener("pointermove",function(e){
     if(e.pointerType!=="mouse"&&!press)return;
     if(e.pointerType==="mouse"&&inCellEl(e)){inside=true;engaged=true} /* pointer already inside the panel when the page loads */
@@ -1070,32 +1083,31 @@ html[lang="en"] [data-en]{display:revert!important}
     if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>10)press.drag=true;
   });
   cell.addEventListener("pointerdown",function(e){
-    var wasHeld=hold;if(hold)releaseHold();
-    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false,noPoint:wasHeld};engaged=true;
+    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false,man:hold};engaged=true;
     try{cell.setPointerCapture(e.pointerId)}catch(_){}
     steer(e);
   });
   function release(e){
     if(!press)return;
-    var tap=!press.drag&&!press.noPoint&&performance.now()-press.t<450;press=null;
-    if(tap&&e.type==="pointerup")addPoint(toSvg(e));
+    var tap=!press.drag&&performance.now()-press.t<450,man=press.man;press=null;
+    if(tap&&e.type==="pointerup"){if(man){if(hold&&!running)setTcpMm(toMm(toSvg(e)))}else addPoint(toSvg(e))}
     lastMove=performance.now();
   }
   cell.addEventListener("pointerup",release);
   cell.addEventListener("pointercancel",release);
   var kbdMsg=T("Стрелки двигают схват, с Shift быстрее, Enter ставит точку, Esc сбрасывает","Arrows move the gripper, Shift is faster, Enter adds a point, Esc clears");
   cell.addEventListener("focus",function(){var kb=true;try{kb=cell.matches(":focus-visible")}catch(_){}if(kb&&!wps.length&&!running)$("msg").textContent=kbdMsg});
-  cell.addEventListener("blur",function(){if(!wps.length&&!running)$("msg").innerHTML=hold?"":msgDefault;if(hold)$("msg").textContent=holdTxt()});
+  cell.addEventListener("blur",function(){if(!wps.length&&!running)$("msg").innerHTML=msgDefault;if(hold)$("msg").textContent=holdTxt()});
   cell.addEventListener("keydown",function(e){
     if(e.target!==cell)return;
     var step=e.shiftKey?18:5,dx=0,dy=0;
     if(e.key==="ArrowLeft")dx=-step;else if(e.key==="ArrowRight")dx=step;else if(e.key==="ArrowUp")dy=-step;else if(e.key==="ArrowDown")dy=step;
     if(dx||dy){
       e.preventDefault();if(running)return;
-      if(hold)releaseHold();
+      if(hold){var mm=manP||toMm(TCP),k=e.shiftKey?10:1;setTcpMm({x:mm.x+Math.sign(dx)*k,y:mm.y-Math.sign(dy)*k});return}
       engaged=true;goal=inPanel(pt(goal.x+dx,goal.y+dy));stillSince=performance.now();stopReconf();lastMove=performance.now();
       showTarget(goal);flagBad(!reachable(goal));
-    }else if(e.key==="Enter"){e.preventDefault();addPoint(pt(goal.x,goal.y));lastMove=performance.now()}
+    }else if(e.key==="Enter"){e.preventDefault();if(hold)addPoint(pt(TCP.x,TCP.y),q);else addPoint(pt(goal.x,goal.y));lastMove=performance.now()}
     else if(e.key==="Escape"){setRunning(false);wps=[];renderWps();$("msg").textContent=kbdMsg}
   });
 
@@ -1128,22 +1140,26 @@ html[lang="en"] [data-en]{display:revert!important}
 
   /* ---------- manual input: joint angles and TCP coordinates typed into the readout ---------- */
   var hold=false,manQ=null,manP=null;
+  /* manual mode is explicit (button in the toolbar, or focusing a readout field turns it on): the arm never follows
+     the pointer, a tap on the panel moves the gripper there, the demo does not start; the same button turns it off */
   function holdTxt(){
     var touch=window.matchMedia("(pointer:coarse)").matches;
-    return touch?T("Ручной ввод. Коснитесь панели, чтобы снова вести манипулятор","Manual input. Tap the panel to steer the arm again")
-                :T("Ручной ввод. Щёлкните по панели, чтобы снова вести манипулятор","Manual input. Click the panel to steer the arm again");
+    return touch?T("Ручной режим: введите значения внизу или коснитесь точки на панели","Manual mode: type values below or tap a point on the panel")
+                :T("Ручной режим: введите значения внизу или щёлкните точку на панели","Manual mode: type values below or click a point on the panel");
   }
+  function syncMan(){$("manBtn").setAttribute("aria-pressed",String(hold));cell.classList.toggle("manual",hold)}
   function enterHold(){
     if(running)return;
     var m=$("msg");
     if(hold)return; /* already held: keep a manual move that is under way */
-    hold=true;manQ=manP=null;
+    hold=true;manQ=manP=null;clearPend();syncMan();
     reconf=null;demo=null;idle=null;qd=q.slice();cur=pt(TCP.x,TCP.y);goal=pt(TCP.x,TCP.y);
     $("target").setAttribute("opacity","0");flagBad(false);clearTimeout(msgTimer);m.classList.remove("warn");m.textContent=holdTxt();
   }
   function releaseHold(){
-    hold=false;manQ=manP=null;reconf=null;qd=q.slice();cur=pt(TCP.x,TCP.y);goal=pt(TCP.x,TCP.y);
-    var m=$("msg");m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault;
+    hold=false;manQ=manP=null;clearPend();reconf=null;qd=q.slice();cur=pt(TCP.x,TCP.y);goal=pt(TCP.x,TCP.y);syncMan();
+    $("target").setAttribute("opacity","0");flagBad(false);
+    var m=$("msg");clearTimeout(msgTimer);m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault;
   }
   function num(s){var v=parseFloat(String(s).replace(/[\u2212\u2013]/g,"-").replace(",",".").replace(/[^0-9.+-]/g,""));return isFinite(v)?v:NaN}
   function whyNot(c){
@@ -1159,22 +1175,47 @@ html[lang="en"] [data-en]{display:revert!important}
       v=Math.max(lo,Math.min(hi,v));
       say(J+": допустимо от "+fmt(lo)+"° до "+fmt(hi)+"°",J+": allowed range is "+fmt(lo)+"° to "+fmt(hi)+"°",true);
     }
-    var tq=(manQ||q).slice();tq[i]=Math.max(M.LIM[i][0],Math.min(M.LIM[i][1],v*D+zero(i)));
+    var tq=(manQ||q).slice(),clip=function(k,a){return Math.max(M.LIM[k][0],Math.min(M.LIM[k][1],a*D+zero(k)))};
+    pendJ[i]=v;for(var k=0;k<M.n;k++)if(pendJ[k]!==undefined)tq[k]=clip(k,pendJ[k]);
     var c=check(tq);
-    if(c){var w=whyNot(c);say("Нельзя: "+w,"Not allowed: "+w,true);return}
-    manQ=tq;manP=null;moveTo(tq);
+    if(c){ /* keep the value as pending: the pose may become valid once another angle is changed too */
+      var w=whyNot(c);markPend("#a"+(i+1),true);
+      say("Пока нельзя: "+w+". Измените другой угол","Not yet: "+w+". Change another angle",true);return;
+    }
+    clearPend();manQ=tq;manP=null;moveTo(tq);
   }
   function setTcp(ax,v){
-    var base=manP||{x:(TCP.x-ORIGIN.x)*MM,y:(ORIGIN.y-TCP.y)*MM},mm={x:base.x,y:base.y};mm[ax]=v;
-    var p=pt(ORIGIN.x+mm.x/MM,ORIGIN.y-mm.y/MM);
+    var base=manP||toMm(TCP),mm={x:pendP.x!==undefined?pendP.x:base.x,y:pendP.y!==undefined?pendP.y:base.y};mm[ax]=v;
+    if(setTcpMm(mm,true))return;
+    /* the point (new value, other coordinate) is out of reach: keep the value as pending and go to the other field */
+    pendP[ax]=v;markPend(ax==="x"?"#tx":"#ty",true);
+    var other=ax==="x"?"y":"x";
+    if(pendP[other]===undefined){var o=$(ax==="x"?"ty":"tx");setTimeout(function(){o.focus();try{o.select()}catch(_){}},0)}
+    say("Точка X "+fmt(mm.x)+", Y "+fmt(mm.y)+" вне зоны досягаемости. Задайте "+other.toUpperCase(),"Point X "+fmt(mm.x)+", Y "+fmt(mm.y)+" is out of reach. Set "+other.toUpperCase(),true);
+  }
+  /* values typed but not executed yet (they make an invalid pose on their own) */
+  var pendJ={},pendP={};
+  function markPend(sel,on){var e=document.querySelector(sel);if(e)e.classList.toggle("pending",on)}
+  function clearPend(){pendJ={};pendP={};document.querySelectorAll("#readout .pending").forEach(function(e){e.classList.remove("pending")})}
+  function setTcpMm(mm,quiet){
+    var p=fromMm(mm);
     showTarget(p);
-    if(!reachable(p)){flagBad(true);say("Точка вне зоны досягаемости","This point is out of reach",true);return}
+    if(!reachable(p)){flagBad(true);if(!quiet)say("Точка вне зоны досягаемости","This point is out of reach",true);return false}
     flagBad(false);
-    var r=ikFrom(manQ||q,p,150);
-    if(r.err>=2||check(r.q)){var cc=cellCfg(p);if(cc)r=ikFrom(cc,p,150)}
-    if(r.err<2&&M.n>2){var rest=ikFrom(r.q,p,240,true);if(rest.err<2&&!check(rest.q))r=rest}
-    if(r.err>=2||check(r.q)){flagBad(true);say("Манипулятор не дотягивается до этой точки","The arm cannot reach this point",true);return}
-    manP=mm;manQ=r.q;moveTo(r.q);
+    /* several IK solutions (from the current pose, from the reach map, from random seeds); take the first one
+       the arm can move to without a collision, directly or through HOME */
+    var seeds=[manQ||q,cellCfg(p)],sols=[],best=null;
+    for(var i=0;i<12;i++)seeds.push(M.seed());
+    for(i=0;i<seeds.length&&!best;i++){
+      if(!seeds[i])continue;
+      var r=ikFrom(seeds[i],p,150);if(r.err>=2||check(r.q))continue;
+      if(M.n>2){var rest=ikFrom(r.q,p,240,true);if(rest.err<2&&!check(rest.q))r=rest}
+      sols.push(r.q);
+      if(pathFree(q,r.q)||(pathFree(q,M.HOME)&&pathFree(M.HOME,r.q)))best=r.q;
+    }
+    if(!best&&sols.length)best=sols[0];
+    if(!best){flagBad(true);if(!quiet)say("Манипулятор не дотягивается до этой точки","The arm cannot reach this point",true);return false}
+    clearPend();manP=mm;manQ=best;moveTo(best);return true;
   }
   function applyInput(inp){
     if(running||inp.readOnly)return;
@@ -1184,7 +1225,39 @@ html[lang="en"] [data-en]{display:revert!important}
     if(inp.dataset.j!==undefined)setJoint(+inp.dataset.j,v);else setTcp(inp.dataset.ax,v);
     lastMove=performance.now();
   }
-  $("readout").addEventListener("pointerdown",function(e){if(e.target.classList.contains("man"))e.stopPropagation()});
+  $("readout").addEventListener("pointerdown",function(e){if(e.target.closest&&e.target.closest("label"))e.stopPropagation()});
+  (function(){var b=$("manBtn"),t=T("Ручное управление: углы и координаты","Manual control: angles and coordinates");b.title=t;b.setAttribute("aria-label",t);
+    b.addEventListener("click",function(e){e.stopPropagation();if(hold)releaseHold();else if(!running)enterHold()})})();
+  $("addPt").addEventListener("click",function(e){e.stopPropagation();if(hold&&!running)addPoint(pt(TCP.x,TCP.y),q)});
+
+  /* ---------- scale ruler on the floor (X) and at the right edge (Y), in real millimetres ---------- */
+  function updateScale(){
+    var c=svg.getScreenCTM();if(!c||!(c.a>0))return;
+    var k=c.a/PX_MM;if(Math.abs(k-MMU)<1e-4&&$("ruler").childNodes.length)return;
+    MMU=k;manP=null;drawRuler();
+  }
+  function drawRuler(){
+    var g=$("ruler");g.innerHTML="";
+    var u=1/(MMU*PX_MM),fs=10*u,tk=[3*u,5*u,8*u],d=["","",""],X0=40,X1=480,YT=120;
+    for(var mm=Math.ceil((X0-ORIGIN.x)*MMU);mm<=(X1-ORIGIN.x)*MMU;mm++){
+      var x=(ORIGIN.x+mm/MMU).toFixed(2),c=mm%10===0?2:mm%5===0?1:0;
+      d[c]+="M"+x+" "+FLOOR_Y+"v"+(-tk[c]).toFixed(2);
+      if(c===2&&mm!==0){var t=mk("text",{x:x,y:(FLOOR_Y-tk[2]-2*u).toFixed(2),"font-size":fs.toFixed(2),"text-anchor":"middle",stroke:"none"},g);t.textContent=String(mm)}
+    }
+    for(mm=1;mm<=(FLOOR_Y-YT)*MMU;mm++){
+      var y=(FLOOR_Y-mm/MMU).toFixed(2);c=mm%10===0?2:mm%5===0?1:0;
+      d[c]+="M"+X1+" "+y+"h"+(-tk[c]).toFixed(2);
+      if(c===2){t=mk("text",{x:(X1-tk[2]-2*u).toFixed(2),y:(+y+3.5*u).toFixed(2),"font-size":fs.toFixed(2),"text-anchor":"end",stroke:"none"},g);t.textContent=String(mm)}
+    }
+    var ytop=FLOOR_Y-Math.floor((FLOOR_Y-YT)*MMU)/MMU;
+    mk("path",{d:"M"+X1+" "+FLOOR_Y+"V"+ytop.toFixed(2),"stroke-width":(1*u).toFixed(2),fill:"none",opacity:.6},g);
+    [.6,.75,1].forEach(function(o,i){mk("path",{d:d[i],"stroke-width":(1*u).toFixed(2),fill:"none",opacity:o*.7},g)});
+    var lx=mk("text",{x:X0,y:(FLOOR_Y-tk[2]-15*u).toFixed(2),"font-size":fs.toFixed(2),stroke:"none"},g);lx.textContent=T("X, мм","X, mm");
+    var ly=mk("text",{x:X1,y:(ytop-5*u).toFixed(2),"font-size":fs.toFixed(2),"text-anchor":"end",stroke:"none"},g);ly.textContent=T("Y, мм","Y, mm");
+    g.setAttribute("opacity",".85");
+  }
+  if(window.ResizeObserver)new ResizeObserver(updateScale).observe(cell);
+  window.addEventListener("resize",updateScale);
   document.querySelectorAll("#readout .man").forEach(function(inp){
     var j=inp.dataset.j,name=j!==undefined?"J"+(+j+1):inp.dataset.ax.toUpperCase();
     var t=j!==undefined?T("Угол "+name+", градусы. Enter — переместить, Esc — отмена","Joint "+name+" angle, degrees. Enter moves, Esc cancels")
@@ -1194,7 +1267,7 @@ html[lang="en"] [data-en]{display:revert!important}
     inp.addEventListener("keydown",function(e){
       e.stopPropagation();
       if(e.key==="Enter"){e.preventDefault();applyInput(inp);inp.select()}
-      else if(e.key==="Escape"){e.preventDefault();inp._applied=inp.value;inp.blur()} /* blur without applying; draw() restores the live value */
+      else if(e.key==="Escape"){e.preventDefault();if(inp.classList.contains("pending")){inp.classList.remove("pending");if(inp.dataset.j!==undefined)delete pendJ[inp.dataset.j];else delete pendP[inp.dataset.ax]}inp._applied=inp.value;inp.blur()} /* blur without applying; draw() restores the live value */
       else if(e.key==="ArrowUp"||e.key==="ArrowDown"){ /* step the value: 1 (Shift: 10) per press */
         e.preventDefault();var v=num(inp.value);if(isNaN(v))return;
         inp.value=fmt(v+(e.key==="ArrowUp"?1:-1)*(e.shiftKey?10:1));applyInput(inp);
@@ -1204,7 +1277,7 @@ html[lang="en"] [data-en]{display:revert!important}
   });
 
   /* ---------- main loop ---------- */
-  setModel("serial",false);
+  setModel("serial",false);updateScale();
   var t0=performance.now(),prev=t0;
   (function tick(now){
     var dt=Math.min(.05,(now-prev)/1000);prev=now;
