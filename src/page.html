@@ -111,6 +111,7 @@ h1 span{display:block}
 .pendant{position:absolute;left:16px;right:278px;top:14px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--steel)}
 .pendant .msg{padding:4px 4px}
 .pendant .msg.warn{color:#C2413A}
+.pendant .msg.note{color:var(--z-y)}
 .pendant button{font:inherit;font-size:14px;cursor:pointer;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:4px 10px;border-radius:8px;line-height:1.4}
 .pendant button:disabled{opacity:.45;cursor:default}
 .pendant .seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
@@ -604,6 +605,32 @@ html[lang="en"] [data-en]{display:revert!important}
         return P[3];
       };
     };
+    /* all IK solutions for a point: tool angle phi on a grid x two elbow branches (index = elbow*PHI_N + phi step); null = invalid */
+    var PHI_N=90;M.PHI_N=PHI_N;
+    function wrap(a){while(a>Math.PI)a-=2*Math.PI;while(a<=-Math.PI)a+=2*Math.PI;return a}
+    /* exact IK for a tool angle phi and an elbow branch e (0: J2 > 0, 1: J2 < 0); null if invalid */
+    M.ikPhi=function(p,phi,e){
+      var px=p.x-B.x,py=B.y-p.y,wx=px-L[2]*Math.cos(phi),wy=py-L[2]*Math.sin(phi);
+      var c2=(wx*wx+wy*wy-L[0]*L[0]-L[1]*L[1])/(2*L[0]*L[1]);
+      if(c2>1||c2<-1)return null;
+      var q2=(e?-1:1)*Math.acos(c2),q1=Math.atan2(wy,wx)-Math.atan2(L[1]*Math.sin(q2),L[0]+L[1]*Math.cos(q2));
+      var qq=[wrap(q1),q2,0];qq[2]=wrap(phi-qq[0]-q2);
+      return M.check(qq)?null:qq;
+    };
+    M.ikAll=function(p){
+      var out=new Array(2*PHI_N+2),px=p.x-B.x,py=B.y-p.y;
+      for(var j=0;j<PHI_N;j++)for(var e=0;e<2;e++)out[e*PHI_N+j]=M.ikPhi(p,2*Math.PI*j/PHI_N,e);
+      /* the two stretched poses (J2 = 0) where the elbow branches meet: they bridge one branch to the other */
+      var R=L[0]+L[1],d=Math.hypot(px,py);out[2*PHI_N]=out[2*PHI_N+1]=null;
+      if(d>1e-6&&d<=R+L[2]&&d>=Math.abs(R-L[2])){
+        var aa=(R*R-L[2]*L[2]+d*d)/(2*d),hh=Math.sqrt(Math.max(0,R*R-aa*aa)),mx=px*aa/d,my=py*aa/d;
+        [1,-1].forEach(function(sg,k){
+          var wx=mx-sg*hh*py/d,wy=my+sg*hh*px/d,q1=Math.atan2(wy,wx),phi=Math.atan2(py-wy,px-wx);
+          var qq=[wrap(q1),0,wrap(phi-q1)];out[2*PHI_N+k]=M.check(qq)?null:qq;
+        });
+      }
+      return out;
+    };
     M.gaugeR=[27,21,16];
     M.gauges=function(q){var P=fk(q,[]);return [{c:P[0],ref:0},{c:P[1],ref:q[0]},{c:P[2],ref:q[0]+q[1]}]};
     M.status=function(q){return Math.abs(q[1])<3*D&&Math.abs(q[2])<3*D?T("сингулярность: рука вытянута","singularity: arm fully stretched"):""};
@@ -738,8 +765,8 @@ html[lang="en"] [data-en]{display:revert!important}
   /* DLS with a numeric Jacobian; for redundant models a "stay away from limits" term works in the null space.
      settle=true keeps iterating after the TCP is on target, so the null-space term brings the pose to rest:
      a reconfiguration then ends exactly in the pose the tracking IK would drift to, with no extra motion afterwards */
-  function ikFrom(v,t,iters,settle){
-    var lam2=64,n=M.n,h=1e-4,e=0;v=v.slice();
+  function ikFrom(v,t,iters,settle,lam){
+    var lam2=lam||64,n=M.n,h=1e-4,e=0;v=v.slice();
     for(var k=0;k<iters;k++){
       var p=M.tcp(v);if(!isFinite(p.x))break;
       var ex=t.x-p.x,ey=-(t.y-p.y);e=Math.sqrt(ex*ex+ey*ey);
@@ -747,15 +774,23 @@ html[lang="en"] [data-en]{display:revert!important}
       var J=[];
       for(var i=0;i<n;i++){var vp=v.slice(),vm=v.slice();vp[i]+=h;vm[i]-=h;var a=M.tcp(vp),b=M.tcp(vm);J.push([(a.x-b.x)/(2*h),-(a.y-b.y)/(2*h)])}
       if(!J.every(function(r){return isFinite(r[0])&&isFinite(r[1])}))break;
-      var A=lam2,B=0,Dd=lam2;
-      for(i=0;i<n;i++){A+=J[i][0]*J[i][0];B+=J[i][0]*J[i][1];Dd+=J[i][1]*J[i][1]}
-      var det=A*Dd-B*B,ux=(Dd*ex-B*ey)/det,uy=(-B*ex+A*ey)/det,dq=[],m=0;
-      for(i=0;i<n;i++)dq.push(J[i][0]*ux+J[i][1]*uy);
-      if(n>2){
-        var Ai=Dd/det,Bi=-B/det,Di=A/det,z=[],Jz0=0,Jz1=0;
-        for(i=0;i<n;i++){var mid=(M.LIM[i][0]+M.LIM[i][1])/2,half=(M.LIM[i][1]-M.LIM[i][0])/2,u=(v[i]-mid)/half;z.push(-.12*(u*u*u+.3*u));Jz0+=J[i][0]*z[i];Jz1+=J[i][1]*z[i]}
-        var w0=Ai*Jz0+Bi*Jz1,w1=Bi*Jz0+Di*Jz1;
-        for(i=0;i<n;i++)dq[i]+=z[i]-(J[i][0]*w0+J[i][1]*w1);
+      /* a joint that sits on its limit and would be pushed further is locked and the step is solved again with the
+         others; without this the clamp eats the step and the solver crawls along the limit */
+      var lock=[],dq,m=0;for(i=0;i<n;i++)lock.push(false);
+      for(var pass=0;pass<=n;pass++){
+        var A=lam2,B=0,Dd=lam2,free=0;
+        for(i=0;i<n;i++)if(!lock[i]){free++;A+=J[i][0]*J[i][0];B+=J[i][0]*J[i][1];Dd+=J[i][1]*J[i][1]}
+        var det=A*Dd-B*B,ux=(Dd*ex-B*ey)/det,uy=(-B*ex+A*ey)/det;dq=[];
+        for(i=0;i<n;i++)dq.push(lock[i]?0:J[i][0]*ux+J[i][1]*uy);
+        if(free>2){
+          var Ai=Dd/det,Bi=-B/det,Di=A/det,z=[],Jz0=0,Jz1=0;
+          for(i=0;i<n;i++){var mid=(M.LIM[i][0]+M.LIM[i][1])/2,half=(M.LIM[i][1]-M.LIM[i][0])/2,u=(v[i]-mid)/half;z.push(lock[i]?0:-.12*(u*u*u+.3*u));Jz0+=J[i][0]*z[i];Jz1+=J[i][1]*z[i]}
+          var w0=Ai*Jz0+Bi*Jz1,w1=Bi*Jz0+Di*Jz1;
+          for(i=0;i<n;i++)if(!lock[i])dq[i]+=z[i]-(J[i][0]*w0+J[i][1]*w1);
+        }
+        var hit=-1;
+        for(i=0;i<n&&hit<0;i++)if(!lock[i]&&((v[i]<=M.LIM[i][0]+1e-6&&dq[i]<0)||(v[i]>=M.LIM[i][1]-1e-6&&dq[i]>0)))hit=i;
+        if(hit<0)break;lock[hit]=true;
       }
       for(i=0;i<n;i++)m=Math.max(m,Math.abs(dq[i]));
       if(m>.06)for(i=0;i<n;i++)dq[i]*=.06/m;
@@ -911,10 +946,10 @@ html[lang="en"] [data-en]{display:revert!important}
   /* ---------- teach mode ---------- */
   var wps=[],MAXP=8,moveType="J",running=false,seg=null,msgTimer=0;
   var msgDefault=$("msg").innerHTML;
-  function say(ru,en,warn){
+  function say(ru,en,warn,note){
     var m=$("msg");clearTimeout(msgTimer);
-    m.textContent=T(ru,en);m.classList.toggle("warn",!!warn);
-    msgTimer=setTimeout(function(){m.classList.remove("warn");if(hold)m.textContent=holdTxt();else m.innerHTML=wps.length?"":msgDefault},2400);
+    m.textContent=T(ru,en);m.classList.toggle("warn",!!warn);m.classList.toggle("note",!!note);
+    msgTimer=setTimeout(function(){m.classList.remove("warn");m.classList.remove("note");if(hold)m.textContent=holdTxt();else m.innerHTML=wps.length?"":msgDefault},2400);
   }
   function renderWps(){
     var g=$("wps");g.innerHTML="";
@@ -959,10 +994,124 @@ html[lang="en"] [data-en]{display:revert!important}
     if(moveType==="J"){
       var from=q.slice();
       s.legs=planJoint(to.q).map(function(b){var a=from,m=0;for(var k=0;k<M.n;k++)m=Math.max(m,Math.abs(b[k]-a[k]));from=b;return {a:a,b:b,dur:Math.max(.5,m/1.3),t:0}});s.leg=0;
-    }else s.dur=Math.max(.6,Math.hypot(to.x-s.from.x,to.y-s.from.y)/150);
+    }else{
+      s.plan=planLine(q,s.from,to);
+      if(!s.plan){ /* no continuous joint path keeps the gripper on this line from the current pose */
+        say("MoveL: из этой позы прямая недостижима, переход по MoveJ","MoveL: the straight line cannot be followed from this pose, moving with MoveJ",true);
+        var f2=q.slice();s.type="J";s.leg=0;
+        s.legs=planJoint(to.q).map(function(b){var a=f2,m=0;for(var k=0;k<M.n;k++)m=Math.max(m,Math.abs(b[k]-a[k]));f2=b;return {a:a,b:b,dur:Math.max(.5,m/1.3),t:0}});
+      }else{
+        s.dur=s.plan.T[s.plan.T.length-1];
+        if(s.plan.hops)say("MoveL: на этой прямой нужна смена конфигурации — схват ненадолго сходит с неё","MoveL: this line needs a change of arm configuration, the gripper leaves it for a moment",false,true);
+      }
+    }
     seg=s;
   }
   function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+  /* MoveL is planned before the move: the line is cut into ~1.5-unit steps and the IK is solved step by step from the
+     previous pose, so the joint path is continuous and the gripper stays on the line. Each step gets the time its
+     largest joint motion needs at LIN_VJ (and at least the time at LIN_V along the line); playback eases in and out. */
+  var LIN_V=150,LIN_VJ=1.3;
+  function jmax(a,b){var m=0;for(var i=0;i<a.length;i++)m=Math.max(m,Math.abs(a[i]-b[i]));return m}
+  /* redundant arm: dynamic programming over the IK grid along the line, so the arm may change its tool angle and elbow
+     on the way instead of running into its joint limits; cost = joint motion, steps limited to small jumps */
+  function planLineDP(q0,a,b){
+    var L=Math.hypot(b.x-a.x,b.y-a.y),N=Math.max(2,Math.ceil(L/3)),G=M.PHI_N,S=2*G+2,JM=.2,W=3,HOP=8,ALL=[];
+    for(var i0=0;i0<S;i0++)ALL.push(i0);
+    function nb(s2){ /* grid neighbours (same tool angle +-W steps, both elbows) plus the two stretched bridge poses */
+      if(s2>=2*G)return ALL;
+      var j=s2%G,r=[2*G,2*G+1];for(var ee=0;ee<2;ee++)for(var d=-W;d<=W;d++)r.push(ee*G+((j+d+G)%G));return r}
+    /* k = 0: every solution at the start point. Cost to get there from the current pose: self-motion over the grid
+       (the gripper stays put) when connected, otherwise a joint move (HOP penalty, the gripper leaves the point briefly) */
+    var st0=M.ikAll(a),c0=new Array(S).fill(Infinity),p0=new Array(S).fill(-1),done=new Array(S).fill(false),hop=new Array(S).fill(false);
+    for(var s2=0;s2<S;s2++)if(st0[s2]){var j0=jmax(q0,st0[s2]);if(j0<=JM){c0[s2]=j0;p0[s2]=-2}}
+    for(var it=0;it<S;it++){ /* Dijkstra over the start-point grid */
+      var u0=-1,bc=Infinity;for(s2=0;s2<S;s2++)if(!done[s2]&&c0[s2]<bc){bc=c0[s2];u0=s2}
+      if(u0<0)break;done[u0]=true;
+      nb(u0).forEach(function(v){if(!st0[v]||done[v])return;var jp=jmax(st0[u0],st0[v]);if(jp<=JM&&c0[u0]+jp<c0[v]){c0[v]=c0[u0]+jp;p0[v]=u0}});
+    }
+    for(s2=0;s2<S;s2++)if(st0[s2]&&c0[s2]===Infinity&&pathFree(q0,st0[s2])){c0[s2]=HOP+jmax(q0,st0[s2]);hop[s2]=true}
+    var prevSt=st0,prevCost=c0,par=[],sts=[],hopAt=[];
+    for(var k=1;k<=N;k++){
+      var u=k/N,st=M.ikAll(pt(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u)),cost=new Array(S).fill(Infinity),pr=new Array(S).fill(-1),any=false;
+      for(s2=0;s2<S;s2++){
+        if(!st[s2])continue;
+        var cand=nb(s2);
+        for(var c=0;c<cand.length;c++){
+          var s1=cand[c];if(!prevSt[s1]||prevCost[s1]===Infinity)continue;
+          var jp=jmax(prevSt[s1],st[s2]);if(jp>JM)continue;
+          var v=prevCost[s1]+jp;if(v<cost[s2]){cost[s2]=v;pr[s2]=s1;any=true}
+        }
+      }
+      var hk=null;
+      if(!any){
+        /* no continuous step: the arm has to change its configuration here (e.g. flip the elbow), which takes it off the
+           line for a moment. Allow a joint move from the cheapest previous poses to any collision-free pose here */
+        var order=[];for(s2=0;s2<S;s2++)if(prevSt[s2]&&prevCost[s2]<Infinity)order.push(s2);
+        order.sort(function(x,y){return prevCost[x]-prevCost[y]});order=order.slice(0,12);hk=[];
+        for(s2=0;s2<S;s2++){
+          if(!st[s2])continue;
+          for(c=0;c<order.length;c++){
+            var s1h=order[c],vh=prevCost[s1h]+HOP+jmax(prevSt[s1h],st[s2]);
+            if(vh<cost[s2]&&pathFree(prevSt[s1h],st[s2])){cost[s2]=vh;pr[s2]=s1h;hk[s2]=true;any=true}
+          }
+        }
+        if(!any)return null;
+      }
+      hopAt.push(hk);par.push(pr);sts.push(st);prevSt=st;prevCost=cost;
+    }
+    var best=-1;bc=Infinity;for(s2=0;s2<S;s2++)if(prevCost[s2]<bc){bc=prevCost[s2];best=s2}
+    var line=new Array(N+1),lineHop=new Array(N+1).fill(false),hops=0;
+    for(k=N;k>=1;k--){line[k]=sts[k-1][best];if(hopAt[k-1]&&hopAt[k-1][best]){lineHop[k]=true;hops++}best=par[k-1][best]}
+    line[0]=st0[best];
+    /* lead-in: self-motion chain or a joint hop from q0 to the chosen start pose */
+    var lead=[q0.slice()];
+    if(hop[best]){var m=jmax(q0,st0[best]),n=Math.max(1,Math.ceil(m/.05));for(var h=1;h<n;h++)lead.push(lerpQ(q0,st0[best],h/n))}
+    else{var chain=[],x=best;while(x>=0){chain.unshift(st0[x]);x=p0[x]}chain.pop();lead=lead.concat(chain)}
+    /* smooth the tool angle along each continuous run (same elbow, no reconfiguration), keeping only valid small steps */
+    function phiOf(x){return x[0]+x[1]+x[2]}
+    function elb(x){return x[1]<0?1:0}
+    function onLineP(t){return pt(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t)}
+    for(var pass2=0;pass2<3;pass2++)for(k=1;k<N;k++){
+      if(lineHop[k]||lineHop[k+1]||Math.abs(line[k][1])<.05)continue;
+      var e1=elb(line[k]);if(elb(line[k-1])!==e1||elb(line[k+1])!==e1)continue;
+      var ph=(phiOf(line[k-1])+2*phiOf(line[k])+phiOf(line[k+1]))/4,cq=M.ikPhi(onLineP(k/N),ph,e1);
+      if(cq&&jmax(cq,line[k-1])<=JM&&jmax(cq,line[k+1])<=JM)line[k]=cq;
+    }
+    /* densify the line part: between samples the pose is re-solved on the line (tool angle interpolated), so the
+       gripper does not bow off it; reconfiguration steps stay plain joint moves */
+    var dense=[line[0]];
+    for(k=1;k<=N;k++){
+      var jj=jmax(line[k-1],line[k]),nsub=Math.max(1,Math.ceil(jj/.02));
+      for(var h2=1;h2<nsub;h2++){
+        var f=h2/nsub,sd=lerpQ(line[k-1],line[k],f);
+        if(lineHop[k]){dense.push(sd);continue} /* the reconfiguration itself is a plain joint move */
+        var tp=onLineP((k-1+f)/N),ea=elb(line[k-1]),eb=elb(line[k]),aq=null;
+        if(ea===eb){var p0=phiOf(line[k-1]),p1=phiOf(line[k]);aq=M.ikPhi(tp,p0+(p1-p0)*f,ea)}
+        if(aq&&jmax(aq,sd)<.1){dense.push(aq);continue}
+        var rr=ikFrom(sd,tp,20,false,16);
+        dense.push(rr.err<.5&&!check(rr.q)&&jmax(rr.q,sd)<.1?rr.q:sd);
+      }
+      dense.push(line[k]);
+    }
+    var qs=lead.concat(dense),T=[0],nl=lead.length,dsTot=L/LIN_V;
+    for(k=1;k<qs.length;k++)T.push(T[k-1]+Math.max(k>=nl?dsTot/(dense.length-1):0,jmax(qs[k-1],qs[k])/LIN_VJ));
+    var tot=Math.max(.6,T[T.length-1]),T1=T[T.length-1];for(k=0;k<T.length;k++)T[k]*=tot/Math.max(T1,1e-9);
+    return {qs:qs,T:T,hop:hop[best],hops:hops};
+  }
+  function planLine(q0,a,b){
+    if(M.ikAll)return planLineDP(q0,a,b);
+    var L=Math.hypot(b.x-a.x,b.y-a.y),N=Math.max(2,Math.ceil(L/1.5)),qs=[q0.slice()],T=[0],prev=q0;
+    for(var k=1;k<=N;k++){
+      var u=k/N,tp=pt(a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u),r=ikFrom(prev,tp,80,false,16),jump=0;
+      if(M.n>2&&r.err<.8){var r2=ikFrom(r.q,tp,4,true,16);if(r2.err<.8&&!check(r2.q))r=r2} /* redundant arm: keep drifting away from the joint limits */
+      for(var i=0;i<M.n;i++)jump=Math.max(jump,Math.abs(r.q[i]-prev[i]));
+      if(r.err>.8||check(r.q)||jump>.25)return null;
+      T.push(T[k-1]+Math.max(L/N/LIN_V,jump/LIN_VJ));qs.push(r.q);prev=r.q;
+    }
+    var tot=Math.max(.6,T[N]);for(k=0;k<=N;k++)T[k]*=tot/Math.max(T[N],1e-9);
+    return {qs:qs,T:T};
+  }
   function stepProgram(dt){
     if(seg.type==="J"){
       var leg=seg.legs[seg.leg];leg.t=Math.min(1,leg.t+dt/leg.dur);
@@ -970,10 +1119,11 @@ html[lang="en"] [data-en]{display:revert!important}
       if(leg.t>=1){if(++seg.leg>=seg.legs.length)nextSeg(seg.i+1)}
       return;
     }
-    seg.t=Math.min(1,seg.t+dt/seg.dur);var e2=ease(seg.t);
-    var r=ikFrom(q,pt(seg.from.x+(seg.to.x-seg.from.x)*e2,seg.from.y+(seg.to.y-seg.from.y)*e2),30);
-    drive(r.q,dt);
-    if(r.err>3&&!seg.warned){seg.warned=true;say("MoveL: прямая проходит через недостижимую зону","MoveL: the straight line crosses an unreachable area",true)}
+    seg.t=Math.min(1,seg.t+dt/seg.dur);
+    var P=seg.plan,tau=ease(seg.t)*seg.dur,k=1;
+    while(k<P.T.length-1&&P.T[k]<tau)k++;
+    var f=(tau-P.T[k-1])/Math.max(P.T[k]-P.T[k-1],1e-9),nq=lerpQ(P.qs[k-1],P.qs[k],Math.max(0,Math.min(1,f)));
+    if(!check(nq))q=nq;
     if(seg.t>=1)nextSeg(seg.i+1);
   }
   document.querySelectorAll("[data-move]").forEach(function(b){
