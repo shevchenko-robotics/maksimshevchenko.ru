@@ -13,6 +13,7 @@
 - `data/records.json` — патенты, публикации и упоминания. Из него собираются разделы сайта и список в резюме: после правки запустите `python3 tools/build.py` и `python3 tools/cv.py`.
 - `.github/workflows/links.yml` — раз в месяц проверяет все внешние ссылки на сайте и заводит задачу (issue), если какие-то перестали открываться.
 - `.github/social-preview.png` — картинка превью репозитория на GitHub (1280×640, важное — в пределах 80 px от краёв), исходник — `tools/social-preview.html`; загружается вручную в Settings → Social preview. Картинка для соцсетей у самого сайта — `og.jpg` (1200×630).
+- `docs/ideas.md` — задуманные доработки сайта, которые ещё не начаты, в порядке реализации.
 - `robots.txt`, `sitemap.xml`, `404.html`, `CNAME` — служебные файлы GitHub Pages.
 
 Шрифт Onest распространяется по лицензии SIL Open Font License (`fonts/OFL.txt`).
