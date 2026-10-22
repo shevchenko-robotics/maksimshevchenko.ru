@@ -110,9 +110,18 @@ h1 span{display:block}
 .cell svg{display:block;width:100%;height:100%}
 .cell .bad{stroke:#C2413A}
 .readout{position:absolute;left:20px;right:20px;bottom:16px;display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--steel);font-variant-numeric:tabular-nums;pointer-events:none}
-.readout b{font-weight:600;color:var(--ink);display:inline-block;min-width:3.2ch}
-.readout .joints,.readout .tcp{display:flex;gap:14px}
-.readout .tcp{gap:10px}
+.readout .joints,.readout .tcp{display:flex;gap:12px}
+.readout .tcp{gap:8px;margin-left:auto}
+@media (max-width:520px){.readout{flex-wrap:wrap;row-gap:1px;bottom:5px;line-height:1.2}.readout .joints{gap:10px}}
+.readout label{white-space:nowrap}
+/* the values double as inputs: type an angle or a coordinate, Enter moves the arm */
+.readout input{pointer-events:auto;font:inherit;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);background:transparent;width:3.6ch;padding:0 1px;margin:0;border:0;border-bottom:1px dashed var(--rule);border-radius:0;text-align:right;cursor:text}
+.readout input.wide{width:4.6ch}
+.readout input:hover{border-bottom-color:var(--steel)}
+.readout input:focus{outline:none;background:var(--bg);border-bottom:1.5px solid var(--ink)}
+.readout input:focus-visible{outline:3px solid var(--safety);outline-offset:1px}
+.readout input[readonly]{border-bottom-color:transparent;cursor:default}
+@media (pointer:coarse){.readout input{font-size:16px}} /* iOS zooms into inputs smaller than 16px */
 .touch-only{display:none}
 @media (pointer:coarse){.touch-only{display:inline}.mouse-only{display:none}}
 
@@ -300,9 +309,9 @@ html[lang="en"] [data-en]{display:revert!important}
 <button id="clear" type="button"><span>Clear</span></button>
 </span>
 </div>
-<div aria-hidden="true" class="readout">
-<span class="joints"><span>J1 <b id="a1">0°</b></span><span>J2 <b id="a2">0°</b></span><span>J3 <b id="a3">0°</b></span></span>
-<span class="tcp"><span>X <b id="tx">0</b></span><span>Y <b id="ty">0</b></span><span>mm</span></span>
+<div class="readout" id="readout">
+<span class="joints"><label>J1 <input autocomplete="off" class="man" data-j="0" enterkeyhint="go" id="a1" inputmode="decimal" spellcheck="false" value="0"/>°</label><label>J2 <input autocomplete="off" class="man" data-j="1" enterkeyhint="go" id="a2" inputmode="decimal" spellcheck="false" value="0"/>°</label><label>J3 <input autocomplete="off" class="man" data-j="2" enterkeyhint="go" id="a3" inputmode="decimal" spellcheck="false" value="0"/>°</label></span>
+<span class="tcp"><label>X <input autocomplete="off" class="man wide" data-ax="x" enterkeyhint="go" id="tx" inputmode="decimal" spellcheck="false" value="0"/></label><label>Y <input autocomplete="off" class="man wide" data-ax="y" enterkeyhint="go" id="ty" inputmode="decimal" spellcheck="false" value="0"/></label><span>mm</span></span>
 </div>
 </div>
 </div>
@@ -842,6 +851,8 @@ html[lang="en"] [data-en]{display:revert!important}
   }
 
   /* ---------- joint gauges: a dial around each drive with green / yellow / red zones and a pointer ---------- */
+  /* the readout counts each joint from the middle of its range: 0° is the centre of the green zone */
+  function zero(i){return (M.LIM[i][0]+M.LIM[i][1])/2}
   function zoneMargins(i){var r=M.LIM[i][1]-M.LIM[i][0];return {red:Math.max(4*D,.05*r),yel:Math.max(12*D,.15*r)}}
   function zoneOf(i,v){var m=zoneMargins(i),d=Math.min(v-M.LIM[i][0],M.LIM[i][1]-v);return d<m.red?"r":d<m.red+m.yel?"y":"g"}
   var ZC={g:"var(--z-g)",y:"var(--z-y)",r:"var(--z-r)"},gauges=[],showGauges=false; /* off on every page load; on only after the visitor presses the button (the choice is not remembered) */
@@ -866,6 +877,8 @@ html[lang="en"] [data-en]{display:revert!important}
       [lo,hi].forEach(function(a){ /* end stops */
         mk("line",{x1:((r-3.5)*Math.cos(a)).toFixed(2),y1:(-(r-3.5)*Math.sin(a)).toFixed(2),x2:((r+3.5)*Math.cos(a)).toFixed(2),y2:(-(r+3.5)*Math.sin(a)).toFixed(2),stroke:"var(--ink)","stroke-width":1.6,"stroke-linecap":"round"},grp);
       });
+      var z0=(lo+hi)/2; /* zero mark */
+      mk("line",{x1:((r-5)*Math.cos(z0)).toFixed(2),y1:(-(r-5)*Math.sin(z0)).toFixed(2),x2:((r+1.5)*Math.cos(z0)).toFixed(2),y2:(-(r+1.5)*Math.sin(z0)).toFixed(2),stroke:"var(--ink)","stroke-width":1.2,"stroke-linecap":"round",opacity:.7},grp);
       var nd=mk("path",{d:"M"+(r+8)+" 0L"+(r-4)+" -3.6Q"+(r-6)+" 0 "+(r-4)+" 3.6Z",fill:ZC.g,stroke:"var(--ink)","stroke-width":1.3,"stroke-linejoin":"round"},grp);
       gauges.push({g:grp,needle:nd});
       if(!showGauges)grp.style.display="none";
@@ -883,6 +896,7 @@ html[lang="en"] [data-en]{display:revert!important}
 
   /* ---------- drawing ---------- */
   var blocked=false,reconf=null,stillSince=0,idle=null;
+  function fmt(v){var r=Math.round(v);return String(r===0?0:r)}
   function draw(){
     var p=drawModel(q);if(p)TCP=p;drawGauges();
     var status="";
@@ -892,14 +906,16 @@ html[lang="en"] [data-en]{display:revert!important}
       wrap.style.display="";
       var atLim=Math.min(q[i]-M.LIM[i][0],M.LIM[i][1]-q[i])<1.5*D,cap=$("j"+(i+1)),z=zoneOf(i,q[i]);
       if(cap)cap.setAttribute("fill",ZC[z]);
-      b.textContent=Math.round(q[i]/D)+"°";b.style.color=z==="g"?"":ZC[z];
+      if(document.activeElement!==b)b.value=fmt((q[i]-zero(i))/D);
+      b.style.color=z==="g"?"":ZC[z];b.readOnly=running;
       if(atLim&&!status)status=T("J"+(i+1)+" на упоре","J"+(i+1)+" at its limit");
     }
-    $("tx").textContent=Math.round((TCP.x-ORIGIN.x)*MM);
-    $("ty").textContent=Math.round((ORIGIN.y-TCP.y)*MM);
+    var tx=$("tx"),ty=$("ty");tx.readOnly=ty.readOnly=running;
+    if(document.activeElement!==tx)tx.value=fmt((TCP.x-ORIGIN.x)*MM);
+    if(document.activeElement!==ty)ty.value=fmt((ORIGIN.y-TCP.y)*MM);
     $("tcp").setAttribute("cx",TCP.x.toFixed(2));$("tcp").setAttribute("cy",TCP.y.toFixed(2));
     if(!idle){var ms=M.status(q);if(ms)status=ms}
-    if(reconf)status=T("меняю конфигурацию, чтобы дотянуться","changing arm configuration to reach the point");
+    if(reconf&&!hold)status=T("меняю конфигурацию, чтобы дотянуться","changing arm configuration to reach the point");
     if(blocked&&!status)status=T("манипулятор не дотягивается до этой точки","the arm cannot reach this point");
     var st=$("singTxt");if(st.textContent!==status)st.textContent=status;
   }
@@ -930,7 +946,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function say(ru,en,warn){
     var m=$("msg");clearTimeout(msgTimer);
     m.textContent=T(ru,en);m.classList.toggle("warn",!!warn);
-    msgTimer=setTimeout(function(){m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault},2400);
+    msgTimer=setTimeout(function(){m.classList.remove("warn");if(hold)m.textContent=holdTxt();else m.innerHTML=wps.length?"":msgDefault},2400);
   }
   function renderWps(){
     var g=$("wps");g.innerHTML="";
@@ -951,6 +967,7 @@ html[lang="en"] [data-en]{display:revert!important}
     $("run").disabled=wps.length<2;
     if(wps.length&&!running)$("msg").innerHTML="";
     if(!wps.length)$("msg").innerHTML=msgDefault;
+    if(hold)$("msg").textContent=holdTxt();
   }
   function addPoint(p){
     if(running)return;
@@ -962,6 +979,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function flagBad(b){$("target").classList.toggle("bad",b)}
   function setRunning(on){
     running=on&&wps.length>1;
+    if(running){if(hold)releaseHold();var ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("man"))ae.blur()}
     $("run").setAttribute("aria-pressed",String(running));
     $("run").textContent=running?T("Стоп","Stop"):T("Пуск","Run");
     seg=null;
@@ -1005,7 +1023,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function setModel(id,animate){
     var g=$("armg");
     function apply(){
-      M=MODELS[id];buildToken++;q=M.q0.slice();qd=q.slice();
+      M=MODELS[id];buildToken++;q=M.q0.slice();qd=q.slice();hold=false;manQ=manP=null;
       setRunning(false);wps=[];renderWps();reconf=null;idle=null;demo=null;blocked=false;trail=[];
       reach=null;reachList=[];$("noreach").setAttribute("opacity","0");
       g.innerHTML="";drawModel=M.build(g);buildGauges(g);
@@ -1036,7 +1054,7 @@ html[lang="en"] [data-en]{display:revert!important}
   function stopReconf(){if(reconf){reconf=null;qd=q.slice()}} /* continue tracking from the pose the arm is actually in */
   function inCellEl(e){return !!(e.target&&e.target.closest&&e.target.closest("#cell"))}
   function steer(e){
-    var p=toSvg(e);lastMove=performance.now();showTarget(p);
+    var p=toSvg(e);lastMove=performance.now();if(hold)return p;showTarget(p);
     flagBad(inCellEl(e)&&!reachable(p));
     if(!running){var g=inPanel(p);if(Math.hypot(g.x-goal.x,g.y-goal.y)>2){stillSince=performance.now();stopReconf()}goal=g}
     return p;
@@ -1052,13 +1070,14 @@ html[lang="en"] [data-en]{display:revert!important}
     if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>10)press.drag=true;
   });
   cell.addEventListener("pointerdown",function(e){
-    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false};engaged=true;
+    var wasHeld=hold;if(hold)releaseHold();
+    press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false,noPoint:wasHeld};engaged=true;
     try{cell.setPointerCapture(e.pointerId)}catch(_){}
     steer(e);
   });
   function release(e){
     if(!press)return;
-    var tap=!press.drag&&performance.now()-press.t<450;press=null;
+    var tap=!press.drag&&!press.noPoint&&performance.now()-press.t<450;press=null;
     if(tap&&e.type==="pointerup")addPoint(toSvg(e));
     lastMove=performance.now();
   }
@@ -1066,13 +1085,14 @@ html[lang="en"] [data-en]{display:revert!important}
   cell.addEventListener("pointercancel",release);
   var kbdMsg=T("Стрелки двигают схват, с Shift быстрее, Enter ставит точку, Esc сбрасывает","Arrows move the gripper, Shift is faster, Enter adds a point, Esc clears");
   cell.addEventListener("focus",function(){var kb=true;try{kb=cell.matches(":focus-visible")}catch(_){}if(kb&&!wps.length&&!running)$("msg").textContent=kbdMsg});
-  cell.addEventListener("blur",function(){if(!wps.length&&!running)$("msg").innerHTML=msgDefault});
+  cell.addEventListener("blur",function(){if(!wps.length&&!running)$("msg").innerHTML=hold?"":msgDefault;if(hold)$("msg").textContent=holdTxt()});
   cell.addEventListener("keydown",function(e){
     if(e.target!==cell)return;
     var step=e.shiftKey?18:5,dx=0,dy=0;
     if(e.key==="ArrowLeft")dx=-step;else if(e.key==="ArrowRight")dx=step;else if(e.key==="ArrowUp")dy=-step;else if(e.key==="ArrowDown")dy=step;
     if(dx||dy){
       e.preventDefault();if(running)return;
+      if(hold)releaseHold();
       engaged=true;goal=inPanel(pt(goal.x+dx,goal.y+dy));stillSince=performance.now();stopReconf();lastMove=performance.now();
       showTarget(goal);flagBad(!reachable(goal));
     }else if(e.key==="Enter"){e.preventDefault();addPoint(pt(goal.x,goal.y));lastMove=performance.now()}
@@ -1106,6 +1126,83 @@ html[lang="en"] [data-en]{display:revert!important}
     if(!check(nq))q=nq;else if(!check(lin))q=lin;
   }
 
+  /* ---------- manual input: joint angles and TCP coordinates typed into the readout ---------- */
+  var hold=false,manQ=null,manP=null;
+  function holdTxt(){
+    var touch=window.matchMedia("(pointer:coarse)").matches;
+    return touch?T("Ручной ввод. Коснитесь панели, чтобы снова вести манипулятор","Manual input. Tap the panel to steer the arm again")
+                :T("Ручной ввод. Щёлкните по панели, чтобы снова вести манипулятор","Manual input. Click the panel to steer the arm again");
+  }
+  function enterHold(){
+    if(running)return;
+    var m=$("msg");
+    if(hold)return; /* already held: keep a manual move that is under way */
+    hold=true;manQ=manP=null;
+    reconf=null;demo=null;idle=null;qd=q.slice();cur=pt(TCP.x,TCP.y);goal=pt(TCP.x,TCP.y);
+    $("target").setAttribute("opacity","0");flagBad(false);clearTimeout(msgTimer);m.classList.remove("warn");m.textContent=holdTxt();
+  }
+  function releaseHold(){
+    hold=false;manQ=manP=null;reconf=null;qd=q.slice();cur=pt(TCP.x,TCP.y);goal=pt(TCP.x,TCP.y);
+    var m=$("msg");m.classList.remove("warn");m.innerHTML=wps.length?"":msgDefault;
+  }
+  function num(s){var v=parseFloat(String(s).replace(/[\u2212\u2013]/g,"-").replace(",",".").replace(/[^0-9.+-]/g,""));return isFinite(v)?v:NaN}
+  function whyNot(c){
+    if(c===1)return (T("параллелограмм не допускает такого угла между звеньями","the parallelogram does not allow this angle between the links"));
+    if(c===2)return (T("звено или схват уходит в пол","a link or the gripper would hit the floor"));
+    if(c===4)return (T("звено задевает основание","a link would hit the base"));
+    return (T("звенья сталкиваются или механизм вырождается","the links collide or the mechanism degenerates"));
+  }
+  function moveTo(tq){reconf={legs:planJoint(tq).map(function(b){return {b:b}}),stuck:0}}
+  function setJoint(i,v){
+    var lo=(M.LIM[i][0]-zero(i))/D,hi=(M.LIM[i][1]-zero(i))/D,J="J"+(i+1);
+    if(v<lo-.5||v>hi+.5){
+      v=Math.max(lo,Math.min(hi,v));
+      say(J+": допустимо от "+fmt(lo)+"° до "+fmt(hi)+"°",J+": allowed range is "+fmt(lo)+"° to "+fmt(hi)+"°",true);
+    }
+    var tq=(manQ||q).slice();tq[i]=Math.max(M.LIM[i][0],Math.min(M.LIM[i][1],v*D+zero(i)));
+    var c=check(tq);
+    if(c){var w=whyNot(c);say("Нельзя: "+w,"Not allowed: "+w,true);return}
+    manQ=tq;manP=null;moveTo(tq);
+  }
+  function setTcp(ax,v){
+    var base=manP||{x:(TCP.x-ORIGIN.x)*MM,y:(ORIGIN.y-TCP.y)*MM},mm={x:base.x,y:base.y};mm[ax]=v;
+    var p=pt(ORIGIN.x+mm.x/MM,ORIGIN.y-mm.y/MM);
+    showTarget(p);
+    if(!reachable(p)){flagBad(true);say("Точка вне зоны досягаемости","This point is out of reach",true);return}
+    flagBad(false);
+    var r=ikFrom(manQ||q,p,150);
+    if(r.err>=2||check(r.q)){var cc=cellCfg(p);if(cc)r=ikFrom(cc,p,150)}
+    if(r.err<2&&M.n>2){var rest=ikFrom(r.q,p,240,true);if(rest.err<2&&!check(rest.q))r=rest}
+    if(r.err>=2||check(r.q)){flagBad(true);say("Манипулятор не дотягивается до этой точки","The arm cannot reach this point",true);return}
+    manP=mm;manQ=r.q;moveTo(r.q);
+  }
+  function applyInput(inp){
+    if(running||inp.readOnly)return;
+    var v=num(inp.value);inp._applied=inp.value;
+    if(isNaN(v)){say("Введите число","Enter a number",true);return}
+    if(!hold)enterHold();
+    if(inp.dataset.j!==undefined)setJoint(+inp.dataset.j,v);else setTcp(inp.dataset.ax,v);
+    lastMove=performance.now();
+  }
+  $("readout").addEventListener("pointerdown",function(e){if(e.target.classList.contains("man"))e.stopPropagation()});
+  document.querySelectorAll("#readout .man").forEach(function(inp){
+    var j=inp.dataset.j,name=j!==undefined?"J"+(+j+1):inp.dataset.ax.toUpperCase();
+    var t=j!==undefined?T("Угол "+name+", градусы. Enter — переместить, Esc — отмена","Joint "+name+" angle, degrees. Enter moves, Esc cancels")
+                       :T("Координата "+name+" схвата, мм. Enter — переместить, Esc — отмена","Gripper "+name+" coordinate, mm. Enter moves, Esc cancels");
+    inp.title=t;inp.setAttribute("aria-label",t);
+    inp.addEventListener("focus",function(){inp._applied=null;if(!running){enterHold();setTimeout(function(){try{inp.select()}catch(_){}},0)}});
+    inp.addEventListener("keydown",function(e){
+      e.stopPropagation();
+      if(e.key==="Enter"){e.preventDefault();applyInput(inp);inp.select()}
+      else if(e.key==="Escape"){e.preventDefault();inp._applied=inp.value;inp.blur()} /* blur without applying; draw() restores the live value */
+      else if(e.key==="ArrowUp"||e.key==="ArrowDown"){ /* step the value: 1 (Shift: 10) per press */
+        e.preventDefault();var v=num(inp.value);if(isNaN(v))return;
+        inp.value=fmt(v+(e.key==="ArrowUp"?1:-1)*(e.shiftKey?10:1));applyInput(inp);
+      }
+    });
+    inp.addEventListener("change",function(){if(inp.value!==inp._applied)applyInput(inp)});
+  });
+
   /* ---------- main loop ---------- */
   setModel("serial",false);
   var t0=performance.now(),prev=t0;
@@ -1113,7 +1210,7 @@ html[lang="en"] [data-en]{display:revert!important}
     var dt=Math.min(.05,(now-prev)/1000);prev=now;
     if(running){blocked=false;stepProgram(dt)}
     else{
-      var quiet=!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:IDLE_MS)&&!wps.length&&!reduce;
+      var quiet=!hold&&!inside&&!press&&document.activeElement!==cell&&now-lastMove>(lastMove<0?1500:IDLE_MS)&&!wps.length&&!reduce;
       if(quiet&&reachList.length){
         if(!idle){idle={t:now};startDemo();reconf=null;engaged=false;$("target").setAttribute("opacity","0");flagBad(false)}
         stepDemo(dt);qd=q.slice();draw();cur=pt(TCP.x,TCP.y);goal=pt(cur.x,cur.y);blocked=false;
@@ -1121,8 +1218,21 @@ html[lang="en"] [data-en]{display:revert!important}
       }
       idle=null;
       var k=reduce?1:1-Math.exp(-TRACK_RATE*dt); /* same feel at 60 and 120 Hz */
-      cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k;
-      if(reconf){
+      if(!hold){cur.x+=(goal.x-cur.x)*k;cur.y+=(goal.y-cur.y)*k}
+      if(hold){
+        /* manual input: the arm holds its pose and only moves to the entered joint angles or TCP */
+        if(reconf){
+          var hl=reconf.legs[0];
+          if(!hl.a){hl.a=q.slice();var hm=0;for(var hi=0;hi<M.n;hi++)hm=Math.max(hm,Math.abs(hl.b[hi]-hl.a[hi]));hl.dur=reduce?0:Math.max(.35,hm/.9);hl.t=0}
+          hl.t=hl.dur?Math.min(1,hl.t+dt/hl.dur):1;
+          var hq=lerpQ(hl.a,hl.b,ease(hl.t));
+          if(!check(hq))q=hq;else reconf.stuck++;
+          if(hl.t>=1){reconf.legs.shift();if(!reconf.legs.length)reconf=null}
+          if(reconf&&reconf.stuck>30){reconf=null;say("Не получается пройти: на пути столкновение","Cannot get there: the path collides",true)}
+          if(!reconf){qd=q.slice();var hp=M.tcp(q);cur=pt(hp.x,hp.y);goal=pt(hp.x,hp.y)}
+        }
+        blocked=false;
+      }else if(reconf){
         /* all joints start and stop together with smooth acceleration (like MoveJ); the leg ends exactly on its target */
         var leg=reconf.legs[0];
         if(!leg.a){leg.a=q.slice();var dm=0;for(var i=0;i<M.n;i++)dm=Math.max(dm,Math.abs(leg.b[i]-leg.a[i]));leg.dur=reduce?0:Math.max(.35,dm/.8);leg.t=0}
