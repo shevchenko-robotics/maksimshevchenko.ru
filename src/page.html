@@ -884,6 +884,7 @@ html[lang="en"] [data-en]{display:revert!important}
     if(reconf&&!hold)status=T("меняю конфигурацию, чтобы дотянуться","changing arm configuration to reach the point");
     if(blocked&&!status)status=T("манипулятор не дотягивается до этой точки","the arm cannot reach this point");
     var st=$("singTxt");if(st.textContent!==status)st.textContent=status;
+    var sc=reconf&&!hold?"var(--z-y)":RED;if(st.getAttribute("fill")!==sc)st.setAttribute("fill",sc); /* reconfiguring is a notice, not an error */
   }
 
   /* fading tool path, continuous from the TCP */
@@ -1019,8 +1020,12 @@ html[lang="en"] [data-en]{display:revert!important}
   var inside=false,engaged=false,press=null;
   function stopReconf(){if(reconf){reconf=null;qd=q.slice()}} /* continue tracking from the pose the arm is actually in */
   function inCellEl(e){return !!(e.target&&e.target.closest&&e.target.closest("#cell"))}
+  /* the strip of the panel below the floor holds the readout and the ruler: it does not steer the arm */
+  function belowFloor(e,p){return inCellEl(e)&&p.y>FLOOR_Y}
   function steer(e){
-    var p=toSvg(e);lastMove=performance.now();if(hold)return p;showTarget(p);
+    var p=toSvg(e);lastMove=performance.now();if(hold)return p;
+    if(belowFloor(e,p)&&!press){$("target").setAttribute("opacity","0");flagBad(false);return p}
+    showTarget(p);
     flagBad(inCellEl(e)&&!reachable(p));
     if(!running){var g=inPanel(p);if(Math.hypot(g.x-goal.x,g.y-goal.y)>2){stillSince=performance.now();stopReconf()}goal=g}
     return p;
@@ -1036,6 +1041,7 @@ html[lang="en"] [data-en]{display:revert!important}
     if(press&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>10)press.drag=true;
   });
   cell.addEventListener("pointerdown",function(e){
+    if(belowFloor(e,toSvg(e)))return;
     press={x:e.clientX,y:e.clientY,t:performance.now(),drag:false,man:hold};engaged=true;
     try{cell.setPointerCapture(e.pointerId)}catch(_){}
     steer(e);
