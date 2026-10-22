@@ -112,6 +112,14 @@ h1 span{display:block}
 .readout{position:absolute;left:20px;right:20px;bottom:16px;display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--steel);font-variant-numeric:tabular-nums;pointer-events:none}
 .readout .joints,.readout .tcp{display:flex;gap:12px}
 .readout .tcp{gap:8px;margin-left:auto}
+/* status line under the floor is drawn in the SVG; on narrow panels the readout takes that space, so it sits just above the floor */
+.status{display:none}
+@media (max-width:520px){
+  #singTxt{display:none}
+  .status{display:block;position:absolute;left:12px;right:12px;bottom:calc(15.4% + 6px);text-align:center;font-size:12.5px;line-height:1.3;pointer-events:none}
+  .status:empty{display:none}
+  .status span{background:var(--panel);box-shadow:0 0 0 3px var(--panel);border-radius:4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+}
 @media (max-width:520px){.readout{flex-wrap:wrap;row-gap:1px;bottom:5px;line-height:1.2}.readout .joints{gap:10px}}
 .readout label{white-space:nowrap;pointer-events:auto;cursor:text}
 /* the values double as inputs: type an angle or a coordinate, Enter moves the arm */
@@ -318,6 +326,7 @@ html[lang="en"] [data-en]{display:revert!important}
 <button id="clear" type="button"><span>Сбросить</span></button>
 </span>
 </div>
+<div aria-live="polite" class="status" id="status"></div>
 <div class="readout" id="readout">
 <span class="joints"><label>J1 <input autocomplete="off" class="man" data-j="0" enterkeyhint="go" id="a1" inputmode="decimal" spellcheck="false" value="0"/>°</label><label>J2 <input autocomplete="off" class="man" data-j="1" enterkeyhint="go" id="a2" inputmode="decimal" spellcheck="false" value="0"/>°</label><label>J3 <input autocomplete="off" class="man" data-j="2" enterkeyhint="go" id="a3" inputmode="decimal" spellcheck="false" value="0"/>°</label></span>
 <span class="tcp"><label>X <input autocomplete="off" class="man wide" data-ax="x" enterkeyhint="go" id="tx" inputmode="decimal" spellcheck="false" value="0"/></label><label>Y <input autocomplete="off" class="man wide" data-ax="y" enterkeyhint="go" id="ty" inputmode="decimal" spellcheck="false" value="0"/></label><span>мм</span></span>
@@ -966,8 +975,10 @@ html[lang="en"] [data-en]{display:revert!important}
     if(!idle&&!parked&&!(reconf&&reconf.home)){var ms=M.status(q);if(ms)status=ms}
     if(reconf&&!hold&&!reconf.home)status=T("меняю конфигурацию, чтобы дотянуться","changing arm configuration to reach the point");
     if(blocked&&!status)status=T("манипулятор не дотягивается до этой точки","the arm cannot reach this point");
-    var st=$("singTxt");if(st.textContent!==status)st.textContent=status;
-    var sc=reconf&&!hold&&!reconf.home?"var(--z-y)":RED;if(st.getAttribute("fill")!==sc)st.setAttribute("fill",sc); /* reconfiguring is a notice, not an error */
+    var sc=reconf&&!hold&&!reconf.home?"var(--z-y)":RED;
+    if(running&&seg&&seg.note){status=T(seg.note.ru,seg.note.en);sc=seg.note.c} /* MoveL notices sit under the floor for the whole segment */
+    var st=$("singTxt");if(st.textContent!==status){st.textContent=status;var hs=$("status");hs.innerHTML="";if(status){var sp=document.createElement("span");sp.textContent=status;hs.appendChild(sp)}}
+    $("status").style.color=sc;if(st.getAttribute("fill")!==sc)st.setAttribute("fill",sc); /* reconfiguring is a notice, not an error */
   }
 
   /* fading tool path, continuous from the TCP */
@@ -1044,12 +1055,12 @@ html[lang="en"] [data-en]{display:revert!important}
     }else{
       s.plan=planLine(q,s.from,to);
       if(!s.plan){ /* no continuous joint path keeps the gripper on this line from the current pose */
-        say("MoveL: из этой позы прямая недостижима, переход по MoveJ","MoveL: the straight line cannot be followed from this pose, moving with MoveJ",true);
+        s.note={ru:"MoveL: прямая недостижима, переход по MoveJ",en:"MoveL: the line cannot be followed, moving with MoveJ",c:RED};
         var f2=q.slice();s.type="J";s.leg=0;
         s.legs=planJoint(to.q).map(function(b){var a=f2,m=0;for(var k=0;k<M.n;k++)m=Math.max(m,Math.abs(b[k]-a[k]));f2=b;return {a:a,b:b,dur:Math.max(.5,m/1.3),t:0}});
       }else{
         s.dur=s.plan.T[s.plan.T.length-1];
-        if(s.plan.hops)say("MoveL: на этой прямой нужна смена конфигурации — схват ненадолго сходит с неё","MoveL: this line needs a change of arm configuration, the gripper leaves it for a moment",false,true);
+        if(s.plan.hops)s.note={ru:"MoveL: смена конфигурации, схват ненадолго сходит с прямой",en:"MoveL: configuration change, the gripper briefly leaves the line",c:"var(--z-y)"};
       }
     }
     seg=s;
