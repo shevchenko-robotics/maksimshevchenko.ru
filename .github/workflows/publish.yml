@@ -1,0 +1,73 @@
+name: Публикация сайта
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # можно запустить вручную во вкладке Actions
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-site
+  cancel-in-progress: false
+
+env:
+  PUBLIC_REPO: shevchenko-robotics/shevchenko-robotics.github.io
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+
+      - name: Подготовить доступ к публичному репозиторию
+        env:
+          DEPLOY_KEY: ${{ secrets.PUBLIC_SITE_DEPLOY_KEY }}
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::error::Не задан секрет PUBLIC_SITE_DEPLOY_KEY"
+            exit 1
+          fi
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/publish_key"
+          chmod 600 "$RUNNER_TEMP/publish_key"
+          ssh-keyscan -t ed25519 github.com > "$RUNNER_TEMP/known_hosts" 2>/dev/null
+          # ключ хоста GitHub сверяем с опубликованным отпечатком
+          ssh-keygen -lf "$RUNNER_TEMP/known_hosts" | grep -q 'SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU' \
+            || { echo "::error::Отпечаток ключа github.com не совпал"; exit 1; }
+
+      - name: Собрать набор файлов по списку
+        run: |
+          mkdir stage
+          cd source
+          grep -v '^[[:space:]]*#' .github/publish-files.txt | grep -v '^[[:space:]]*$' \
+            | while read -r path; do cp -R --parents "$path" ../stage/; done
+          cd ..
+          # защита: в публикацию не должно попасть ничего служебного
+          if find stage \( -path 'stage/src*' -o -path 'stage/tools*' -o -path 'stage/data*' \
+               -o -path 'stage/.github*' -o -name '*.md' -o -name '*.py' -o -name '*.yml' \) | grep -q .; then
+            echo "::error::В наборе есть служебные файлы"
+            find stage \( -path 'stage/src*' -o -path 'stage/tools*' -o -path 'stage/data*' \
+               -o -path 'stage/.github*' -o -name '*.md' -o -name '*.py' -o -name '*.yml' \)
+            exit 1
+          fi
+
+      - name: Обновить публичный репозиторий
+        run: |
+          export GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/publish_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$RUNNER_TEMP/known_hosts -o StrictHostKeyChecking=yes"
+          git clone "git@github.com:${PUBLIC_REPO}.git" public
+          cd public
+          git checkout -B main
+          # CNAME задаётся в настройках Pages: не копируем и не удаляем
+          rsync -a --delete --exclude='/.git/' --exclude='/CNAME' ../stage/ ./
+          git config user.name "Maksim Shevchenko"
+          git config user.email "32164776+shevchenko-robotics@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Изменений в публикуемых файлах нет"
+            exit 0
+          fi
+          git commit -m "Обновление сайта, $(date -u +%Y-%m-%d)"
+          git push origin HEAD:main
